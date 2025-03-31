@@ -25,7 +25,6 @@ const LoginPage: React.FC = () => {
         </p>
 
         <form onSubmit={handleLogin} className="login-form">
-          {/* Caixa de texto com ícone de usuário */}
           <div className="input-container">
             <FaUser className="input-icon" />
             <input
@@ -36,7 +35,6 @@ const LoginPage: React.FC = () => {
             />
           </div>
 
-          {/* Caixa de texto com ícone de olho interativo */}
           <div className="input-container">
             <input
               type={showPassword ? "text" : "password"}

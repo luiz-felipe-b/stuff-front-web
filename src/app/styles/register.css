@@ -60,7 +60,6 @@
     margin-bottom: 2rem;
 }
 
-/* Campos de entrada */
 .input-container {
     position: relative;
     width: 100%;
@@ -84,7 +83,6 @@
     font-size: 1rem;
 }
 
-/* Ícone à esquerda (cadeado) */
 .input-icon-left {
     position: absolute;
     top: 50%;
@@ -94,7 +92,6 @@
     color: #ccc;
 }
 
-/* Ícone à direita (olho interativo) */
 .input-icon-right {
     position: absolute;
     top: 50%;
@@ -127,7 +124,6 @@
     flex: 1;
 }
 
-/* Regras de senha */
 .password-rules {
     width: 100%;
     margin-bottom: 1rem;

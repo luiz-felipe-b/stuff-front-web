@@ -27,7 +27,6 @@ const RegisterPage: React.FC = () => {
       <img src="/register_img.png" alt="Background" className="background-image" />
       <div className="register-form-container">
         <form className="register-form">
-          {/* Título e textos adicionais */}
           <h1 className="register-title">stuff.</h1>
           <h2 className="register-subtitle">Então você é novo aqui?</h2>
           <p className="register-description">Diga-nos um pouco sobre você</p>

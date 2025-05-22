@@ -1,3 +1,10 @@
+:root {
+  --high: #ffc685;
+  --light: #f89f3c;
+  --mid: #da8627;
+  --dark: #9C580C;
+}
+
 .register-page {
     position: relative;
     width: 100%;
@@ -39,7 +46,7 @@
 .register-title {
     font-family: "Onest", sans-serif;
     font-size: 32px;
-    color: #DA8627;
+    color: var(--mid);
     margin-bottom: 1rem;
     text-align: center;
 }
@@ -47,7 +54,7 @@
 .register-subtitle {
     font-family: "Onest", sans-serif;
     font-size: 32px;
-    color: #DA8627;
+    color: var(--mid);
     text-align: center;
     margin-bottom: 0.5rem;
 }
@@ -172,3 +179,26 @@
 .login-redirect a:hover {
     color: #f57c00;
 }
+
+.error-message {
+    color: #ff4d4f;
+    background-color: #fff2f0;
+    padding: 8px 12px;
+    border-radius: 4px;
+    margin-bottom: 16px;
+    border: 1px solid #ffccc7;
+  }
+  
+  .success-message {
+    color: #52c41a;
+    background-color: #f6ffed;
+    padding: 8px 12px;
+    border-radius: 4px;
+    margin-bottom: 16px;
+    border: 1px solid #b7eb8f;
+  }
+  
+  .register-button:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+  }

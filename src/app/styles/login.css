@@ -1,3 +1,10 @@
+:root {
+  --high: #ffc685;
+  --light: #f89f3c;
+  --mid: #da8627;
+  --dark: #9C580C;
+}
+
 .login-page {
     display: flex;
     height: 100vh;
@@ -44,7 +51,7 @@
 .login-title {
     font-family: "Onest", sans-serif;
     font-size: 40px;
-    color: #DA8627;
+    color: var(--mid);
     text-align: center;
     margin-bottom: 1rem;
 }
@@ -52,7 +59,7 @@
 .login-subtitle {
     font-family: "Onest", sans-serif;
     font-size: 32px;
-    color: #F89F3C; 
+    color: var(--light); 
     text-align: center;
     margin-bottom: 0.5rem;
 }
@@ -81,7 +88,7 @@
 .login-button {
     width: 100%;
     padding: 0.8rem;
-    background-color: #ff9800;
+    background-color: var(--mid);
     color: #fff;
     border: none;
     border-radius: 4px;
@@ -90,7 +97,7 @@
 }
 
 .login-button:hover {
-    background-color: #f57c00;
+    background-color: var(--high);
 }
 
 .forgot-password,
@@ -130,8 +137,70 @@
     border-radius: 4px;
     font-size: 1rem;
     line-height: 1; 
+    color:#333;
 }
 
 .input-container .input-icon:hover {
     color: #666;
 }
+.error-message {
+    color: #ff4444;
+    background-color: #ffebee;
+    padding: 10px 15px;
+    border-radius: 4px;
+    margin-bottom: 15px;
+    font-size: 14px;
+  }
+  
+  .login-button:disabled {
+    background-color: #cccccc;
+    cursor: not-allowed;
+  }
+  
+  .input-container {
+    position: relative;
+    margin-bottom: 15px;
+  }
+  
+  .input-icon {
+    position: absolute;
+    left: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #666;
+  }
+  
+  .input-container input {
+    width: 100%;
+    padding: 12px 15px 12px 40px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 16px;
+  }
+
+  .success-message {
+    color: #4CAF50;
+    background-color: #e8f5e9;
+    padding: 12px 15px;
+    border-radius: 4px;
+    margin-bottom: 15px;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border: 1px solid #c8e6c9;
+  }
+  
+  .success-icon {
+    font-size: 18px;
+  }
+  
+  .login-button:disabled {
+    background-color: #4CAF50 !important;
+    cursor: not-allowed;
+  }
+  
+  input:disabled {
+    background-color: #f5f5f5;
+    cursor: not-allowed;
+  }

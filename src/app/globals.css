@@ -1,6 +1,13 @@
 @import "tailwindcss";
 @import url('https://fonts.googleapis.com/css2?family=Onest:wght@100..900&display=swap');
 
-body {
+body, main, footer, nav, div, h1 {
   font-family: 'Onest', Arial, Helvetica, sans-serif;
+}
+
+:root {
+  --high: #ffc685;
+  --light: #f89f3c;
+  --mid: #da8627;
+  --escuro: #9C580C;
 }

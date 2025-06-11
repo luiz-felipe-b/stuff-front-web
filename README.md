@@ -21,12 +21,12 @@ npm install
 
 ## Configuração de variáveis de ambiente
 
-Crie um arquivo `.env.local` na raiz do projeto com as seguintes variáveis (exemplo):
+Crie um arquivo `.env` na raiz do projeto com as seguintes variáveis (exemplo):
 
 ```env
-NEXT_PUBLIC_STUFF_API= x
-NEXT_PUBLIC_ADMIN_EMAIL= x
-NEXT_PUBLIC_ADMIN_PASSWORD= x
+NEXT_PUBLIC_STUFF_API= ?
+NEXT_PUBLIC_ADMIN_EMAIL= ?
+NEXT_PUBLIC_ADMIN_PASSWORD= ?
 ```
 
 ## Rodando o projeto em modo desenvolvimento

@@ -1,10 +1,3 @@
-:root {
-  --high: #ffc685;
-  --light: #f89f3c;
-  --mid: #da8627;
-  --dark: #9C580C;
-}
-
 html {
   scroll-behavior: smooth;
 }

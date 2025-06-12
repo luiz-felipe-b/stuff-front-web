@@ -80,6 +80,7 @@ export const authService = {
       return response;
     } catch (error: any) {
       console.error("Error while trying to reset the password: ", error.response?.data || error.message);
+      throw error;
     }
     
   }

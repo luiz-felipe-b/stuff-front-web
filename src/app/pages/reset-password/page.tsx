@@ -89,11 +89,11 @@ const ResetPasswordPage: React.FC = () => {
     } catch (error: any) {
       if (error.response) {
         switch (error.response.status) {
-          case 401:
-            setError("Usuário não encontrado.");
+          case 403:
+            setError("O token enviado não é valido!");
             break;
           default:
-            setError("Ocorreu um erro durante o login. Tente novamente.");
+            setError("Ocorreu um erro durante a troca de senha. Tente novamente.");
         }
         return;
       }

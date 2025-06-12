@@ -43,6 +43,8 @@ body {
   padding: 20px;
   background-color: white;
   border-radius: 14px;
+  position: relative;
+  z-index: 1
 }
 
 h1, h2 {

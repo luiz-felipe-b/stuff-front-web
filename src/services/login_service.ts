@@ -48,7 +48,8 @@ export const authService = {
         email: data.email.trim(),
         password: data.password.trim(),
       });
-      return response.data.accessToken;
+      // Agora retorna o objeto completo, não só o accessToken
+      return response.data; // Deve conter accessToken e user (com id)
     } catch (error: any) {
       console.error('Erro no loginUser:', error.response?.data || error.message);
       throw error;

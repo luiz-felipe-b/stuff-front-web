@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import "../../styles/login.css";
 import { FaEye, FaEyeSlash, FaEnvelope, FaCheckCircle } from "react-icons/fa";
 import { authService } from "../../../services/login_service";
+import { adminService } from "../../../services/admin_service";
 import { useRouter } from "next/navigation";
 
 const LoginPage: React.FC = () => {
@@ -22,26 +23,46 @@ const LoginPage: React.FC = () => {
     setLoading(true);
 
     try {
-      if (!email || !password) {
-        throw new Error("Por favor, preencha todos os campos");
+      // Verificação de admin, Gambiarra
+      if (email.trim() === "admin@example.com" && password.trim() === "admin123") {
+        setSuccess(true);
+        setTimeout(() => {
+          router.push("/pages/admin");
+        }, 1500);
+        return;
       }
 
-      const token = await authService.loginUser({
+      if (!email || !password) {
+        setError("Por favor, preencha todos os campos");
+        setLoading(false);
+        return;
+      }
+
+      // 1. Login
+      await authService.loginUser({
         email: email.trim(),
         password: password.trim()
       });
 
-      console.log("Login bem-sucedido, token:", token);
-      
+      // 2. Buscar dados do usuário pelo email
+      const userData = await adminService.getUserByIdentifier(email.trim());
+      const userId = userData.id;
+
+      if (!userId) {
+        setError("Não foi possível obter o id do usuário.");
+        setLoading(false);
+        return;
+      }
+      localStorage.setItem("userId", userId);
       setSuccess(true);
-      
+
       setTimeout(() => {
-        router.push("/pages/dashboard");
+        router.push(`/pages/dashboard`);
       }, 2000);
-      
+
     } catch (error: any) {
       console.error("Erro no login:", error);
-      
+
       if (error.response) {
         switch (error.response.status) {
           case 401:

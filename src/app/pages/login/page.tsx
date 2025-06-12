@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import "../../styles/login.css";
-import { FaUser, FaEye, FaEyeSlash, FaEnvelope, FaCheckCircle } from "react-icons/fa";
+import { FaEye, FaEyeSlash, FaEnvelope, FaCheckCircle } from "react-icons/fa";
 import { authService } from "../../../services/login_service";
 import { adminService } from "../../../services/admin_service";
 import { useRouter } from "next/navigation";
@@ -139,7 +139,7 @@ const LoginPage: React.FC = () => {
             {loading ? "Carregando..." : success ? "Sucesso!" : "Entrar"}
           </button>
           
-          <a href="#" className="forgot-password">
+          <a href="/pages/forgot-password" className="forgot-password">
             Esqueceu sua senha?
           </a>
           <a href="/pages/register" className="create-account">

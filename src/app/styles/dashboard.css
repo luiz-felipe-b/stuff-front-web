@@ -7,7 +7,7 @@
 
 body {
   margin: 0;
-  font-family: 'Segoe UI', sans-serif;
+  font-family: 'Onest', sans-serif;
   background: #fffaf3;
 }
 
@@ -21,6 +21,8 @@ body {
   background: var(--escuro);
   color: white;
   display: flex;
+  border-top-right-radius: 16px;
+  border-bottom-right-radius: 16px;
   flex-direction: column;
   padding: 30px 20px;
 }
@@ -54,7 +56,6 @@ body {
 .main {
   flex: 1;
   padding: 40px;
-  background: url('/bg-dashboard.jpg') no-repeat center center / cover;
   color: #333;
 }
 

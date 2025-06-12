@@ -10,4 +10,9 @@ body, main, footer, nav, div, h1, h2, h3, p {
   --light: #f89f3c;
   --mid: #da8627;
   --escuro: #9C580C;
+
+  --bg: #fffaf5;
+  --text: #333;
+  --border-radius: 12px;
+  --transition: all 0.3s ease;
 }

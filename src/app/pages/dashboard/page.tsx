@@ -14,7 +14,7 @@ export default function Dashboard() {
           <nav className="nav">
             <Link href="./..">🏠 Início</Link>
             <Link href="/perfil">👤 Perfil</Link>
-            <Link href="/organizacao">🏢 Organização</Link>
+            <Link href="/pages/organization/">🏢 Organização</Link>
             <Link href="/ativos">📦 Ativos</Link>
           </nav>
         </aside>

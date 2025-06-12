@@ -27,6 +27,9 @@
     justify-content: center;
     background-color: transparent;
     overflow: hidden;
+    border-top-left-radius: 8px;
+    border-bottom-left-radius: 8px;
+
 }
 
 .login-image-container img {
@@ -50,15 +53,15 @@
 
 .login-title {
     font-family: "Onest", sans-serif;
-    font-size: 40px;
-    color: var(--mid);
+    font-size: 32px;
+    color: var(--light);
     text-align: center;
     margin-bottom: 1rem;
 }
 
 .login-subtitle {
     font-family: "Onest", sans-serif;
-    font-size: 32px;
+    font-size: 28px;
     color: var(--light); 
     text-align: center;
     margin-bottom: 0.5rem;
@@ -143,6 +146,33 @@
 .input-container .input-icon:hover {
     color: #666;
 }
+
+.login-button:disabled {
+    background-color: #cccccc;
+    cursor: not-allowed;
+}
+
+.input-container {
+    position: relative;
+    margin-bottom: 15px;
+}
+
+.input-icon {
+    position: absolute;
+    left: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #666;
+}
+
+.input-container input {
+    width: 100%;
+    padding: 12px 15px 12px 40px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 16px;
+}
+
 .error-message {
     color: #ff4444;
     background-color: #ffebee;
@@ -152,33 +182,7 @@
     font-size: 14px;
   }
   
-  .login-button:disabled {
-    background-color: #cccccc;
-    cursor: not-allowed;
-  }
-  
-  .input-container {
-    position: relative;
-    margin-bottom: 15px;
-  }
-  
-  .input-icon {
-    position: absolute;
-    left: 15px;
-    top: 50%;
-    transform: translateY(-50%);
-    color: #666;
-  }
-  
-  .input-container input {
-    width: 100%;
-    padding: 12px 15px 12px 40px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    font-size: 16px;
-  }
-
-  .success-message {
+.success-message {
     color: #4CAF50;
     background-color: #e8f5e9;
     padding: 12px 15px;

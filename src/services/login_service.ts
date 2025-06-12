@@ -5,6 +5,11 @@ interface LoginData {
   password: string;
 }
 
+interface ResetPassword {
+  token: string;
+  newPassword: string;
+}
+
 export const authService = {
   async loginAdmin() {
     try {
@@ -49,4 +54,32 @@ export const authService = {
       throw error;
     }
   },
+
+  async forgotPassword(email: string) {
+    try {
+      const response = await api.post('/auth/forgot-password', {
+        email: email.trim()
+      })
+
+      return response;
+    } catch (error: any) {
+      console.error("Error while trying to send the e-mail: ", error.response?.data || error.message);
+      throw error;
+    }
+  },
+
+  async resetPassword(resetPassword: ResetPassword) {
+
+    try {
+      const response = await api.post("/auth/reset-password", {
+        token: resetPassword.token,
+        newPassword: resetPassword.newPassword
+      });
+
+      return response;
+    } catch (error: any) {
+      console.error("Error while trying to reset the password: ", error.response?.data || error.message);
+    }
+    
+  }
 };

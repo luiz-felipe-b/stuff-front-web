@@ -23,8 +23,8 @@ const LoginPage: React.FC = () => {
     setLoading(true);
 
     try {
-      // Verificação de admin, Gambiarra
-      if (email.trim() === "admin@example.com" && password.trim() === "admin123") {
+      
+      if (email.trim() === process.env.NEXT_PUBLIC_ADMIN_EMAIL && password.trim() === process.env.NEXT_PUBLIC_ADMIN_PASSWORD) {
         setSuccess(true);
         setTimeout(() => {
           router.push("/pages/admin");

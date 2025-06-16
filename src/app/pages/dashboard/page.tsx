@@ -4,15 +4,11 @@ import Header from '@/app/components/header/header';
 
 export default function Dashboard() {
   return (
-    <>
-      <Head>
-        <title>Dashboard | Sistema de Ativos</title>
-      </Head>
-      <div className="dashboard-container">
+      <>
         <Header activeTab='home' />
         <main className="main">
-          <h1>Bem-vindo ao seu painel!</h1>
-          <p>Acompanhe e gerencie seus ativos com facilidade.</p>
+          <h1>Seu painel</h1>
+          <p>acompanhe tudo de um lugar só</p>
 
           <div className="cards">
             <div className="card">
@@ -29,7 +25,6 @@ export default function Dashboard() {
             </div>
           </div>
         </main>
-      </div>
-    </>
+      </>
   );
 }

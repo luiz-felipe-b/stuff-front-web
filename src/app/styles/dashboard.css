@@ -4,20 +4,30 @@ body {
   background: #F4A64E;
 }
 
-.dashboard-container {
-  /* display: flex; */
-  min-height: 100vh;
+body {
+  font-family: 'Onest', sans-serif;
+  background-color: #F4A64E;
+  color: var(--text);
+  padding: 12px;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
 
 .main {
+  background-color: #FFF0E0;
+  display: flex;
+  flex-direction: column;
   flex: 1;
-  padding: 40px;
-  color: #333;
+  overflow-y: auto;
+  margin: 12px;
+  border-radius: 8px;
+  box-shadow: 6px 6px 0px rgba(0, 0, 0, 0.1);
 }
+
 
 .main h1 {
   font-size: 32px;
-  margin-bottom: 10px;
 }
 
 .main p {
@@ -26,6 +36,7 @@ body {
 }
 
 .cards {
+  margin-top: 16px;
   display: flex;
   gap: 20px;
   flex-wrap: wrap;

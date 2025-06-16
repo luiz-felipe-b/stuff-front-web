@@ -5,7 +5,7 @@ import { organizationService } from "../../../services/organization_service";
 import { adminService } from "../../../services/admin_service"; // Para buscar userId pelo email
 import "../../styles/organizacao.css";
 import Header from "@/app/components/header/header";
-import { Plus, Trash, X } from "lucide-react";
+import { Plus, RefreshCcw, Trash, X } from "lucide-react";
 import Link from "next/link";
 
 interface Organization {
@@ -220,28 +220,38 @@ const OrganizacoesPage = () => {
           style={{
             display: "flex",
             marginBottom: 8,
-            alignItems: "center",
+            alignItems: "top",
             justifyContent: "space-between",
           }}
         >
           <p>junte a galera e seus ativos!</p>
-          <button
-            style={{ alignContent: "center", justifyContent: "center" }}
-            onClick={() => setShowCreateModal(true)}
-          >
-            <Plus />
-          </button>
+          <div style={{ display: "flex", gap: 8 }}>
+            <button
+                style={{ alignContent: "center", justifyContent: "center" }}
+                onClick={() => fetchAllOrganizations()}
+              >
+              <RefreshCcw />
+
+            </button>
+            <button
+              style={{ alignContent: "center", justifyContent: "center" }}
+              onClick={() => setShowCreateModal(true)}
+            >
+              <Plus />
+            </button>
+          </div>
         </div>
 
         <div>
           <ul>
             {organizations.map((org) => (
               <Link
+                key={org.id}
                 href={`/pages/organization/${org.id}`}
                 onClick={() => handleSelectOrg(org)}
                 style={{ textDecoration: "none", color: "inherit" }}
               >
-                <li key={org.id}>
+                <li>
                   <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                     <span style={{ fontWeight: 500, whiteSpace: "nowrap", width: "300px", maxWidth: "200px" }}>
                       {org.name}

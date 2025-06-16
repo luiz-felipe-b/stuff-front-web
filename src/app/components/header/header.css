@@ -50,6 +50,18 @@
   background-color: rgba(244, 167, 78, 0.3);
 }
 
+.nav-option.disabled {
+    pointer-events: none;
+    opacity: 0.5;
+    cursor: not-allowed;
+    color: #C7BCB2;
+}
+
+.nav-option.disabled:hover {
+    background-color: transparent;
+    color: #C7BCB2;
+}
+
 .logo {
   font-size: 40px;
   font-weight: bold;

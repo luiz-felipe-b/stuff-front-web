@@ -30,8 +30,7 @@ export default function Header({ activeTab = "home" }: HeaderProps) {
                                         </Link>
                                         <Link href="/pages/settings/" className={`nav-option disabled ${activeTab === "settings" ? "active" : ""}`}>
                                                 <Settings /> configurações
-                                        </Link>
-
+                                        </Link>                                       
 
 
                                 </nav>

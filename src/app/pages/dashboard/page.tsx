@@ -1,13 +1,17 @@
+"use client"
+
 import Head from 'next/head';
 import '../../styles/dashboard.css';
 import Header from '@/app/components/header/header';
+import { useUser } from "../../../context/UserContext"
 
 export default function Dashboard() {
+  const { user } = useUser();
   return (
       <>
         <Header activeTab='home' />
         <main className="main">
-          <h1>Seu painel</h1>
+          <h1> Seu painel{user && user.firstName ? `, ${user.firstName}!` : ""}</h1>
           <p>acompanhe tudo de um lugar só</p>
 
           <div className="cards">

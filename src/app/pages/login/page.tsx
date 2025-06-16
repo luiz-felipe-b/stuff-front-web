@@ -38,6 +38,8 @@ const LoginPage: React.FC = () => {
         return;
       }
 
+      console.log(email, password)
+
       // 1. Login
       await authService.loginUser({
         email: email.trim(),

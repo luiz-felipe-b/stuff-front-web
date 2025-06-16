@@ -1,5 +1,6 @@
 import Head from 'next/head';
 import Link from 'next/link';
+import { Boxes, Building, Home, User } from 'lucide-react';
 import '../../styles/dashboard.css';
 
 export default function Dashboard() {
@@ -12,10 +13,10 @@ export default function Dashboard() {
         <aside className="sidebar">
           <h2 className="logo">Dashboard</h2>
           <nav className="nav">
-            <Link href="./..">🏠 Início</Link>
-            <Link href="/perfil">👤 Perfil</Link>
-            <Link href="/pages/organization/">🏢 Organização</Link>
-            <Link href="/ativos">📦 Ativos</Link>
+            <Link href="./.."><Home/> Início</Link>
+            <Link href="/perfil"><User/> Perfil</Link>
+            <Link href="/pages/organization/"><Building/> Organização</Link>
+            <Link href="/ativos"><Boxes/> Ativos</Link>
           </nav>
         </aside>
 

@@ -44,10 +44,12 @@ export const authService = {
 
   async loginUser(data: LoginData) {
     try {
+      console.log('Tentando logar usuário:', data);
       const response = await api.post('/auth/login', {
         email: data.email.trim(),
         password: data.password.trim(),
       });
+      console.log('Resposta do login:', response.data);
       // Agora retorna o objeto completo, não só o accessToken
       return response.data; // Deve conter accessToken e user (com id)
     } catch (error: any) {

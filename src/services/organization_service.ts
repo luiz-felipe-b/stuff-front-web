@@ -27,7 +27,7 @@ export const organizationService = {
     return response.data;
   },
 
-  async getOrganizationsByUserId(identifier: string) {
+  async getOrganizationById(identifier: string) {
     const token = await ensureToken();
     const response = await api.get(`/organizations/${identifier}`, {
       headers: {

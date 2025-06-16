@@ -8,11 +8,35 @@ body, main, footer, nav, div, h1, h2, h3, p {
 :root {
   --high: #ffc685;
   --light: #f89f3c;
-  --mid: #da8627;
+  --mid: #1a1815;
   --escuro: #9C580C;
 
-  --bg: #fffaf5;
+  --bg: #FFF0E0;
   --text: #333;
   --border-radius: 12px;
   --transition: all 0.3s ease;
+}
+
+body {
+  margin: 0;
+  font-family: 'Onest', sans-serif;
+  background: #F4A64E;
+}
+
+.main {
+  flex: 1;
+  padding: 40px;
+  color: #333;
+}
+
+.main h1 {
+  font-size: 32px;
+  color: #F4A64E;
+  font-weight: 900;
+  margin-bottom: 10px;
+}
+
+.main p {
+  font-size: 18px;
+  color: #444;
 }

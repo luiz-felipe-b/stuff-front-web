@@ -1,7 +1,6 @@
 import Head from 'next/head';
-import Link from 'next/link';
-import { Boxes, Building, Home, User } from 'lucide-react';
 import '../../styles/dashboard.css';
+import Header from '@/app/components/header/header';
 
 export default function Dashboard() {
   return (
@@ -10,16 +9,7 @@ export default function Dashboard() {
         <title>Dashboard | Sistema de Ativos</title>
       </Head>
       <div className="dashboard-container">
-        <aside className="sidebar">
-          <h2 className="logo">Dashboard</h2>
-          <nav className="nav">
-            <Link href="./.."><Home/> Início</Link>
-            <Link href="/perfil"><User/> Perfil</Link>
-            <Link href="/pages/organization/"><Building/> Organização</Link>
-            <Link href="/ativos"><Boxes/> Ativos</Link>
-          </nav>
-        </aside>
-
+        <Header activeTab='home' />
         <main className="main">
           <h1>Bem-vindo ao seu painel!</h1>
           <p>Acompanhe e gerencie seus ativos com facilidade.</p>

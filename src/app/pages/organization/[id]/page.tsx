@@ -1,9 +1,9 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import { organizationService } from "../../../services/organization_service";
-import { adminService } from "../../../services/admin_service"; // Para buscar userId pelo email
-import "../../styles/organizacao.css";
+import { useParams, useRouter } from "next/navigation";
+import { organizationService } from "../../../../services/organization_service";
+import { adminService } from "../../../../services/admin_service"; // Para buscar userId pelo email
+import "../../../styles/organizacao.css";
 import Header from "@/app/components/header/header";
 import { Plus, Trash, X } from "lucide-react";
 import Link from "next/link";
@@ -21,15 +21,8 @@ interface Member {
   role: string;
 }
 
-const OrganizacoesPage = () => {
-  const [organizations, setOrganizations] = useState<Organization[]>([]);
-  const [selectedOrg, setSelectedOrg] = useState<Organization | null>(null);
-  const [form, setForm] = useState({
-    name: "",
-    description: "",
-    password: "",
-    slug: "",
-  });
+const SpecificOrganizationPage = () => {
+  const [org, setOrg] = useState<Organization | null>(null);
 
   const [members, setMembers] = useState<Member[]>([]);
   const [email, setEmail] = useState("");
@@ -41,23 +34,34 @@ const OrganizacoesPage = () => {
   const [successMsg, setSuccessMsg] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
 
+  const params = useParams();
   const router = useRouter();
+
+  const organizationId = params.id as string;
 
   // Buscar todas as organizações ao carregar a página
   useEffect(() => {
-    fetchAllOrganizations();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    if (organizationId) {
+      fetchSpecificOrganization(organizationId);
+    }
+  }, [organizationId]);
 
-  async function fetchAllOrganizations() {
+  async function fetchSpecificOrganization(id: string) {
     setLoading(true);
     setErrorMsg("");
     setSuccessMsg("");
     try {
-      const response = await organizationService.getAllOrganizations();
-      setOrganizations(response?.data || response || []);
+      // Buscar organização específica pelo ID
+      const orgResponse = await organizationService.getOrganizationById(id);
+      const organization = orgResponse?.data || orgResponse;
+      
+      if (organization) {
+        setOrg(organization);
+        // Buscar membros da organização
+        await fetchMembers(organization);
+      }
     } catch (err) {
-      setErrorMsg("Erro ao buscar organizações. Tente novamente mais tarde.");
+      setErrorMsg("Erro ao buscar organização. Verifique se o ID está correto.");
     }
     setLoading(false);
   }
@@ -76,13 +80,8 @@ const OrganizacoesPage = () => {
   }
 
   const handleSelectOrg = (org: Organization) => {
-    setSelectedOrg(org);
-    setForm({
-      name: org.name,
-      description: org.description,
-      password: "",
-      slug: org.slug,
-    });
+    setOrg(org);
+
     fetchMembers(org);
     setSuccessMsg("");
     setErrorMsg("");
@@ -91,7 +90,7 @@ const OrganizacoesPage = () => {
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+    // setForm({ ...form, [e.target.name]: e.target.value });
   };
 
   const handleSubmit = async () => {
@@ -99,16 +98,16 @@ const OrganizacoesPage = () => {
     setErrorMsg("");
     setSuccessMsg("");
     try {
-      if (selectedOrg) {
+      if (org) {
         setErrorMsg("Atualização de organização não implementada.");
       } else {
-        await organizationService.createOrganization(form);
-        await fetchAllOrganizations();
-        setForm({ name: "", description: "", password: "", slug: "" });
+        // await organizationService.createOrganization(form);
+        // await fetchAllOrganizations();
+        // setForm({ name: "", description: "", password: "", slug: "" });
         setSuccessMsg("Organização criada com sucesso!");
         setShowCreateModal(false); // Fechar modal após criar
       }
-      setSelectedOrg(null);
+      setOrg(null);
     } catch (err) {
       setErrorMsg(
         "Erro ao salvar organização. Verifique os dados e tente novamente."
@@ -119,21 +118,21 @@ const OrganizacoesPage = () => {
 
   const handleCloseModal = () => {
     setShowCreateModal(false);
-    setForm({ name: "", description: "", password: "", slug: "" });
+    // setForm({ name: "", description: "", password: "", slug: "" });
     setErrorMsg("");
     setSuccessMsg("");
   };
 
   const handleDelete = async () => {
-    if (selectedOrg) {
+    if (org) {
       setLoading(true);
       setErrorMsg("");
       setSuccessMsg("");
       try {
-        await organizationService.deleteOrganization(selectedOrg.id);
-        await fetchAllOrganizations();
-        setSelectedOrg(null);
-        setForm({ name: "", description: "", password: "", slug: "" });
+        await organizationService.deleteOrganization(org.id);
+        // await fetchAllOrganizations();
+        setOrg(null);
+        // setForm({ name: "", description: "", password: "", slug: "" });
         setMembers([]);
         setSuccessMsg("Organização deletada com sucesso!");
       } catch (err) {
@@ -144,7 +143,7 @@ const OrganizacoesPage = () => {
   };
 
   const handleAddUser = async () => {
-    if (!selectedOrg) return;
+    if (!org) return;
     setLoading(true);
     setErrorMsg("");
     setSuccessMsg("");
@@ -162,8 +161,8 @@ const OrganizacoesPage = () => {
         setLoading(false);
         return;
       }
-      await organizationService.addMember(selectedOrg.id, { userId, role });
-      await fetchMembers(selectedOrg);
+      await organizationService.addMember(org.id, { userId, role });
+      await fetchMembers(org);
       setSuccessMsg("Membro adicionado com sucesso!");
       setEmail("");
     } catch (err) {
@@ -175,17 +174,17 @@ const OrganizacoesPage = () => {
   };
 
   const handleUpdateRole = async (userId: string, newRole: string) => {
-    if (!selectedOrg) return;
+    if (!org) return;
     setLoading(true);
     setErrorMsg("");
     setSuccessMsg("");
     try {
       await organizationService.updateMemberRole(
-        selectedOrg.id,
+        org.id,
         userId,
         newRole
       );
-      await fetchMembers(selectedOrg);
+      await fetchMembers(org);
       setSuccessMsg("Função do membro atualizada com sucesso!");
     } catch (err) {
       setErrorMsg("Erro ao atualizar a função do membro.");
@@ -194,13 +193,13 @@ const OrganizacoesPage = () => {
   };
 
   const handleDeleteUser = async (userId: string) => {
-    if (!selectedOrg) return;
+    if (!org) return;
     setLoading(true);
     setErrorMsg("");
     setSuccessMsg("");
     try {
-      await organizationService.deleteMember(selectedOrg.id, userId);
-      await fetchMembers(selectedOrg);
+      await organizationService.deleteMember(org.id, userId);
+      await fetchMembers(org);
       setSuccessMsg("Membro removido com sucesso!");
     } catch (err) {
       setErrorMsg("Erro ao remover membro da organização.");
@@ -215,107 +214,10 @@ const OrganizacoesPage = () => {
         {successMsg && <div className="success-message">{successMsg}</div>}
         {errorMsg && <div className="error-message">{errorMsg}</div>}
 
-        <h1>Minhas Organizações</h1>
-        <div
-          style={{
-            display: "flex",
-            marginBottom: 8,
-            alignItems: "center",
-            justifyContent: "space-between",
-          }}
-        >
-          <p>junte a galera e seus ativos!</p>
-          <button
-            style={{ alignContent: "center", justifyContent: "center" }}
-            onClick={() => setShowCreateModal(true)}
-          >
-            <Plus />
-          </button>
-        </div>
+        <h1>{org?.name}</h1>
+        <p>{org?.description}</p>
 
-        <div>
-          <ul>
-            {organizations.map((org) => (
-              <Link
-                href={`/pages/organization/${org.id}`}
-                onClick={() => handleSelectOrg(org)}
-                style={{ textDecoration: "none", color: "inherit" }}
-              >
-                <li key={org.id}>
-                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                    <span style={{ fontWeight: 500, whiteSpace: "nowrap", width: "300px", maxWidth: "200px" }}>
-                      {org.name}
-                    </span>
-                    <span style={{ whiteSpace: "nowrap" }}>{org.description}</span>
-                  </div>
-                  {/* <button onClick={() => handleSelectOrg(org)} style={{ marginRight: 8 }}>Selecionar</button> */}
-                  <button
-                    onClick={async () => {
-                      setSelectedOrg(org);
-                      await handleDelete();
-                    }}
-                    className="danger"
-                  >
-                    <Trash />
-                  </button>
-                </li>
-              </Link>
-            ))}
-          </ul>
-        </div>
       </main>
-
-      {/* Modal flutuante para criar organização */}
-      {showCreateModal && (
-        <div className="modal-overlay" onClick={handleCloseModal}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
-              <h1>Nova Organização</h1>
-              <a className="close-button" onClick={handleCloseModal}>
-                <X />
-              </a>
-            </div>
-            <div className="modal-body">
-              <input
-                name="name"
-                placeholder="Nome"
-                onChange={handleChange}
-                value={form.name}
-              />
-              <input
-                name="slug"
-                placeholder="Slug"
-                onChange={handleChange}
-                value={form.slug}
-              />
-              <textarea
-                name="description"
-                placeholder="Descrição"
-                onChange={handleChange}
-                value={form.description}
-              />
-              {/* <input
-                name="password"
-                type="password"
-                placeholder="Senha"
-                onChange={handleChange}
-                value={form.password}
-              /> */}
-            </div>
-            <div className="modal-footer">
-              <button onClick={handleCloseModal} className="danger">
-                Cancelar
-              </button>
-              <button
-                onClick={handleSubmit}
-                disabled={loading}
-              >
-                {loading ? "Criando..." : "Criar Organização"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* <div className="container">
         {!selectedOrg && (
@@ -424,4 +326,4 @@ const OrganizacoesPage = () => {
   );
 };
 
-export default OrganizacoesPage;
+export default SpecificOrganizationPage;

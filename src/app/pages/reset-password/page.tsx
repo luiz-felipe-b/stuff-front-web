@@ -89,8 +89,17 @@ const ResetPasswordPage: React.FC = () => {
     } catch (error: any) {
       if (error.response) {
         switch (error.response.status) {
+          case 400:
+            setError("A senha enviada é inválida!");
+            break;
+          case 401:
+            setError("Usuário não autenticado!");
+            break;
           case 403:
             setError("O token enviado não é valido!");
+            break;
+          case 404:
+            setError("Não foi possível encontrar o usuário para a alteração");
             break;
           default:
             setError("Ocorreu um erro durante a troca de senha. Tente novamente.");

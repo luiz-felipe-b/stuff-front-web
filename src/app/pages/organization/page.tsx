@@ -224,7 +224,7 @@ const OrganizacoesPage = () => {
             justifyContent: "space-between",
           }}
         >
-          <p>junte a galera e seus ativos!</p>
+          <p>Junte a galera e seus ativos!</p>
           <div style={{ display: "flex", gap: 8 }}>
             <button
                 style={{ alignContent: "center", justifyContent: "center" }}

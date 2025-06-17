@@ -1,14 +1,15 @@
 "use client";
 
-import { useUser } from "../../../context/UserContext";
+import { useUser } from "@/context/UserContext";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import "./UserDropdown.css";
 
 const UserDropdown = () => {
   const { user, setUser } = useUser();
   const router = useRouter();
   const [open, setOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   if (!user) return null;
 
@@ -28,8 +29,23 @@ const UserDropdown = () => {
     router.push("/pages/login");
   }
 
+  // Fecha o dropdown ao clicar fora
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setOpen(false);
+      }
+    }
+    if (open) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [open]);
+
   return (
-    <div className="user-dropdown">
+    <div className="user-dropdown" ref={dropdownRef}>
       <div className="user-dropdown-trigger" onClick={() => setOpen((v) => !v)}>
         <div className="user-dropdown-avatar">{initials}</div>
         <span className="user-dropdown-name">

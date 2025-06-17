@@ -251,7 +251,7 @@ const OrganizacoesPage = () => {
                 onClick={() => handleSelectOrg(org)}
                 style={{ textDecoration: "none", color: "inherit" }}
               >
-                <li>
+                <li className="organization-item">
                   <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                     <span style={{ fontWeight: 500, whiteSpace: "nowrap", width: "300px", maxWidth: "200px" }}>
                       {org.name}

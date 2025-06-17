@@ -105,4 +105,16 @@ export const organizationService = {
     });
     return response.data;
   },
+  
+  async getOrganizationAssets(orgId: string) {
+    const token = await ensureToken();
+    const response = await api.get(`/organizations/${orgId}/assets`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    return response.data;
+  },
+
+
 };

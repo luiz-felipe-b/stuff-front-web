@@ -75,7 +75,7 @@ ul {
   margin-top: 12px;
 }
 
-li {
+.organization-item {
   padding: 12px;
   background-color: #FFF0E0;
   border-radius: var(--border-radius);
@@ -87,7 +87,7 @@ li {
   align-items: center;
 }
 
-li > select {
+.organization-item > select {
   width: auto;
   margin-left: 10px;
 }
@@ -124,19 +124,17 @@ li > select {
     margin-top: 12px;
   }
 
-  li {
+  .organization-item {
     flex-direction: column;
     align-items: flex-start;
   }
 
-  li > select,
-  li > button {
+  .organization-item > select,
+  .organization-item > button {
     margin-top: 8px;
     width: 100%;
   }
 }
-
-/* Adicione ao seu arquivo organizacao.css */
 
 .modal-overlay {
   position: fixed;

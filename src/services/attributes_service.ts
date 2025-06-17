@@ -15,90 +15,92 @@ async function ensureToken() {
   return adminToken;
 }
 
-export const AttributeService = {
+export const attributeService = {
 
-    async getAllAttributes() {
-        try {
-            const token = await ensureToken();
-            const response = await api.get('/attributes/', {
-            headers: {
-                Authorization: `Bearer ${token}`
-            }
-            });
-            return response.data.data;
-        } catch (error: any) {
-        if (error.response) {
-          const status = error.response.status;
-          const message = error.response.data?.message || 'Erro desconhecido';
-    
-          if (status === 401) throw new Error(`Unauthorized ${message}`);
-          if (status === 403) throw new Error(`Forbidden ${message}`);
-          if (status === 500) throw new Error(`Internal Server Error ${message}`);
-    
-          throw new Error(`Error: ${status}: ${message}`);
-        }
-        throw new Error('Erro ao conectar com o servidor');
-      }
-    },
-
-    async createAttribute(data: {
-      name: string;
-      description: string;
-      type: string;
-      organizationId: string;
-    }) {
+  async getAllAttributes() {
+    try {
       const token = await ensureToken();
-      try {
-        const response = await api.post('/attributes/', data, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-        return response.data.data.attribute;
-      } catch (error: any) {
-        if (error.response) {
-          const status = error.response.status;
-          const message = error.response.data?.message || 'Erro desconhecido';
-    
-          if (status === 401) throw new Error(`Unauthorized ${message}`);
-          if (status === 403) throw new Error(`Forbidden ${message}`);
-          if (status === 500) throw new Error(`Internal Server Error ${message}`);
-    
-          throw new Error(`Error: ${status}: ${message}`);
+      const response = await api.get('/attributes/', {
+        headers: {
+          Authorization: `Bearer ${token}`
         }
-        throw new Error('Erro ao conectar com o servidor');
-      }
-    },
-    
-    async CreateAttributeValue(attributeId: string, data: {
-        assetInstanceId: string;
-        value: string;
-        metricUnit: string;
-        attributeType: number;
-    }) {
-        try {
-            const token = await ensureToken();
-            const response = await api.post('/attributes/${attributeId}/value', {
-            headers: {
-                Authorization: `Bearer ${token}`
-            }
-            });
-            return response.data.data;
-        }catch (error: any) {
-        if (error.response) {
-          const status = error.response.status;
-          const message = error.response.data?.message || 'Erro desconhecido';
-    
-          if (status === 401) throw new Error(`Unauthorized ${message}`);
-          if (status === 403) throw new Error(`Forbidden ${message}`);
-          if (status === 500) throw new Error(`Internal Server Error ${message}`);
-    
-          throw new Error(`Error: ${status}: ${message}`);
-        }
-        throw new Error('Erro ao conectar com o servidor');
-      }
-    },
+      });
+      return response.data.data;
+    } catch (error: any) {
+      if (error.response) {
+        const status = error.response.status;
+        const message = error.response.data?.message || 'Erro desconhecido';
 
+        if (status === 401) throw new Error(`Unauthorized ${message}`);
+        if (status === 403) throw new Error(`Forbidden ${message}`);
+        if (status === 500) throw new Error(`Internal Server Error ${message}`);
+
+        throw new Error(`Error: ${status}: ${message}`);
+      }
+      throw new Error('Erro ao conectar com o servidor');
+    }
+  },
+
+  async createAttribute(data: {
+    name: string;
+    description: string;
+    authorId: string;
+    type: string;
+    organizationId: string;
+  }) {
+    const token = await ensureToken();
+    try {
+      const response = await api.post('/attributes/', data, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      return response.data.data;
+    } catch (error: any) {
+      if (error.response) {
+        const status = error.response.status;
+        const message = error.response.data?.message || 'Erro desconhecido';
+
+        if (status === 401) throw new Error(`Unauthorized ${message}`);
+        if (status === 403) throw new Error(`Forbidden ${message}`);
+        if (status === 500) throw new Error(`Internal Server Error ${message}`);
+
+        throw new Error(`Error: ${status}: ${message}`);
+      }
+      throw new Error('Erro ao conectar com o servidor');
+    }
+  },
+
+  async createAttributeValue(attributeId: string, data: {
+    assetInstanceId: string;
+    value: string | number | Date;
+    metricUnit?: string;
+    attributeType: string;
+  }) {
+    console.log(attributeId)
+    console.log(data)
+    const token = await ensureToken();
+    try {
+      const response = await api.post(`/attributes/${attributeId}/value`, data, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      return response.data;
+    } catch (error: any) {
+      if (error.response) {
+        const status = error.response.status;
+        const message = error.response.data?.message || 'Erro desconhecido';
+
+        if (status === 401) throw new Error(`Unauthorized ${message}`);
+        if (status === 403) throw new Error(`Forbidden ${message}`);
+        if (status === 500) throw new Error(`Internal Server Error ${message}`);
+
+        throw new Error(`Error: ${status}: ${message}`);
+      }
+      throw new Error('Erro ao conectar com o servidor');
+    }
+  },
 
 
 }

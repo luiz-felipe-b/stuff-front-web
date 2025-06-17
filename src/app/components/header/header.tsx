@@ -3,6 +3,7 @@
 import { Home, Building, Boxes, Users, Settings } from "lucide-react";
 import "./header.css";
 import Link from "next/link";
+import UserDropdown from "./UserDropdown";
 
 interface HeaderProps {
     activeTab?: string;
@@ -14,6 +15,7 @@ export default function Header({ activeTab = "home" }: HeaderProps) {
                         <header className="header">
                                 <div className="header-content">
                                         <h2 className="logo">stuff.</h2>
+                                        <UserDropdown />
                                 </div>
                                 <nav className="nav">
                                         <Link href="/pages/dashboard" className={`nav-option ${activeTab === "home" ? "active" : ""}`}>

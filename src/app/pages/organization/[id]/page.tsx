@@ -5,13 +5,14 @@ import { organizationService } from "../../../../services/organization_service";
 import { adminService } from "../../../../services/admin_service"; // Para buscar userId pelo email
 import "../../../styles/organizacao.css";
 import Header from "@/app/components/header/header";
-import { Plus, Trash, Users, X } from "lucide-react";
+import { Mail, Package, Plus, Shield, ShieldCheck, Trash, UserPlus, Users, X } from "lucide-react";
 import Link from "next/link";
 import Breadcrumb from "@/app/components/breadcrumb/breadcrumb";
 import AssetList from "@/app/components/asset-list/asset-list";
 import { AssetService } from "@/services/assets_service";
 import { attributeService } from "@/services/attributes_service";
 import { useUser } from "@/context/UserContext";
+import "./style.css";
 
 interface Organization {
     id: string;
@@ -38,6 +39,8 @@ interface Asset {
     updatedAt: string;
 }
 
+type TabType = 'assets' | 'members';
+
 const SpecificOrganizationPage = () => {
     const [org, setOrg] = useState<Organization | null>(null);
     const { user, setUser } = useUser();
@@ -49,6 +52,7 @@ const SpecificOrganizationPage = () => {
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [successMsg, setSuccessMsg] = useState("");
     const [errorMsg, setErrorMsg] = useState("");
+    const [activeTab, setActiveTab] = useState<TabType>('assets');
     const params = useParams();
     const router = useRouter();
 
@@ -308,6 +312,14 @@ const SpecificOrganizationPage = () => {
         setLoading(false);
     }
 
+    const getRoleIcon = (role: string) => {
+        return role === 'admin' ? <ShieldCheck size={16} /> : <Shield size={16} />;
+    };
+
+    const getRoleBadgeClass = (role: string) => {
+        return role === 'admin' ? 'role-badge admin' : 'role-badge member';
+    };
+
     return (
         <>
             <Header activeTab="organization" />
@@ -318,11 +330,129 @@ const SpecificOrganizationPage = () => {
                 {successMsg && <div className="success-message">{successMsg}</div>}
                 {errorMsg && <div className="error-message">{errorMsg}</div>}
 
-                <h1>{org?.name}</h1>
-                <p>{org?.description}</p>
+                <div className="organization-header">
+                    <h1>{org?.name}</h1>
+                    <p className="organization-description">{org?.description}</p>
+                </div>
 
-                <AssetList assets={assets} onAddAttribute={handleAddAttribute} onAddAsset={handleAddAsset}/>
+                {/* Tab Navigation */}
+                <div className="tab-navigation">
+                    <button 
+                        className={`tab-button ${activeTab === 'assets' ? 'active' : ''}`}
+                        onClick={() => setActiveTab('assets')}
+                    >
+                        <Package size={18} />
+                        <span>Ativos ({assets.length})</span>
+                    </button>
+                    <button 
+                        className={`tab-button ${activeTab === 'members' ? 'active' : ''}`}
+                        onClick={() => setActiveTab('members')}
+                    >
+                        <Users size={18} />
+                        <span>Membros ({members.length})</span>
+                    </button>
+                </div>
+{/* Tab Content */}
+                <div className="tab-content">
+                    {activeTab === 'assets' && (
+                        <div className="assets-tab">
+                            <AssetList 
+                                assets={assets} 
+                                onAddAttribute={handleAddAttribute} 
+                                onAddAsset={handleAddAsset}
+                                loading={loading}
+                            />
+                        </div>
+                    )}
 
+                    {activeTab === 'members' && (
+                        <div className="members-tab">
+                            <div className="members-header">
+                                <h2>Membros da Organização</h2>
+                                <div className="add-member-form">
+                                    <div className="form-row">
+                                        <div className="input-group">
+                                            <Mail size={16} className="input-icon" />
+                                            <input
+                                                type="email"
+                                                value={email}
+                                                onChange={(e) => setEmail(e.target.value)}
+                                                placeholder="Email do usuário"
+                                                className="member-email-input"
+                                            />
+                                        </div>
+                                        <div className="select-group">
+                                            <select 
+                                                value={role} 
+                                                onChange={(e) => setRole(e.target.value)}
+                                                className="role-select"
+                                            >
+                                                <option value="membro">Membro</option>
+                                                <option value="admin">Admin</option>
+                                            </select>
+                                        </div>
+                                        <button 
+                                            onClick={handleAddUser} 
+                                            disabled={loading || !email.trim()}
+                                            className="add-member-btn"
+                                        >
+                                            <UserPlus size={16} />
+                                            {loading ? 'Adicionando...' : 'Adicionar'}
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="members-list">
+                                {members.length === 0 ? (
+                                    <div className="empty-members">
+                                        <Users size={48} className="empty-icon" />
+                                        <h3>Nenhum membro encontrado</h3>
+                                        <p>Adicione membros à organização usando o formulário acima.</p>
+                                    </div>
+                                ) : (
+                                    <div className="members-grid">
+                                        {members.map((member) => (
+                                            <div key={member.id} className="member-card">
+                                                <div className="member-info">
+                                                    <div className="member-avatar">
+                                                        <Users size={24} />
+                                                    </div>
+                                                    <div className="member-details">
+                                                        <h4 className="member-email">{member.email}</h4>
+                                                        <div className={getRoleBadgeClass(member.role)}>
+                                                            {getRoleIcon(member.role)}
+                                                            <span>{member.role === 'admin' ? 'Administrador' : 'Membro'}</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div className="member-actions">
+                                                    <select
+                                                        value={member.role}
+                                                        onChange={(e) => handleUpdateRole(member.id, e.target.value)}
+                                                        className="role-select-small"
+                                                        disabled={loading}
+                                                    >
+                                                        <option value="membro">Membro</option>
+                                                        <option value="admin">Admin</option>
+                                                    </select>
+                                                    <button
+                                                        onClick={() => handleDeleteUser(member.id)}
+                                                        disabled={loading}
+                                                        className="remove-member-btn"
+                                                        title="Remover membro"
+                                                    >
+                                                        <Trash size={16} />
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    )}
+                </div>
             </main>
 
             {/* <div className="container">

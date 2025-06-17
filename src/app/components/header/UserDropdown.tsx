@@ -39,7 +39,7 @@ const UserDropdown = () => {
       </div>
       {open && (
         <div className="user-dropdown-menu">
-          <button className="user-dropdown-btn" onClick={() => {}}>
+          <button className="user-dropdown-btn" onClick={() => {router.push("/pages/profile")}}>
             Ver meu perfil
           </button>
           <button className="user-dropdown-btn" onClick={handleLogout}>

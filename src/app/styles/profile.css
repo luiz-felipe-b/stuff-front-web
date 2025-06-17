@@ -1,0 +1,164 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Onest', sans-serif;
+  background-color: #F4A64E;
+  color: var(--text);
+  padding: 12px;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.main {
+  background-color: #FFF0E0;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  overflow-y: auto;
+  margin: 12px;
+  border-radius: 8px;
+  box-shadow: 6px 6px 0px rgba(0, 0, 0, 0.1);
+}
+
+.main__top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+
+.main__top__texts h1 {
+  font-size: 32px;
+}
+
+.main__top__texts p {
+  font-size: 18px;
+  color: #444;
+}
+
+.main__top button {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background-color: #F89F3C;
+    color: white;
+    padding: 12px;
+    border: none;
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    font-size: 1rem;
+    transition: background-color 0.1s ease;
+}
+
+
+.main__top .edit__buttons {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+button:hover {
+  background-color: #FFC685;
+}
+
+button.danger {
+  background-color: #C62828;
+}
+
+button.danger:hover {
+  background-color: #F65757;
+}
+
+
+.main__info {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 20px;
+    padding: 30px 0;
+}
+
+.main__info__container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 15px;
+    width: 46%;
+    background-color: white;
+    border-radius: 5px;
+    padding: 20px 0;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.main__info__container__icon {
+    color: #f28c28;
+    scale: 1.8;
+}
+
+.main__info__container h2 {
+    font-size: 24px;
+    font-weight: bold;
+}
+
+.main__info__container h3 {
+    font-size: 16px;
+}
+
+.main__edit {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    padding: 30px 0;
+}
+
+.main__edit__input {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.main__edit__input {
+    font-size: 18px;
+}
+
+.input__container {
+  display: flex;
+  align-items: center;
+  background-color: #ffffff; 
+  border: 2px solid transparent;
+  border-radius: 8px;
+  padding: 0.5rem 0.75rem;
+  transition: border 0.3s ease;
+}
+
+.input__container:focus-within {
+  border-color: #F89F3C; 
+}
+
+.input__container__icon {
+  color: #f28c28; 
+  margin-right: 0.5rem;
+  font-size: 1rem;
+}
+
+.input-field {
+  flex: 1;
+  border: none;
+  background: transparent;
+  outline: none;
+  font-size: 1rem;
+  color: #3e3e3e; 
+}
+
+.input-field::placeholder {
+  color: #c1a480; 
+  font-style: italic;
+}

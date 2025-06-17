@@ -12,7 +12,7 @@ export default function Dashboard() {
         <Header activeTab='home' />
         <main className="main">
           <h1> Seu painel{user && user.firstName ? `, ${user.firstName}!` : ""}</h1>
-          <p>acompanhe tudo de um lugar só</p>
+          <p>Acompanhe tudo de um lugar só</p>
 
           <div className="cards">
             <div className="card">

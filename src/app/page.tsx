@@ -1,13 +1,16 @@
 import React from 'react';
 import '../styles/home.css';
 import Button from '@/components/Button/Button';
+import { Dog } from 'lucide-react';
 
 export default function Home() {
   return (
     <div className="root">
 
-      <Button variant='primary' size='md' className='button' palette='default' disabled>
+      <Button variant='primary' size='md' className='button' palette='success' href="/pages/register/">
+        <Dog />
         <span className="button-text">Começar</span>
+        <Dog />
       </Button>
       <nav className="navbar">
         <div className="logo">Stuff.</div>

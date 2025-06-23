@@ -1,6 +1,6 @@
 "use client";
 
-import { useUser } from "../../../context/UserContext";
+import { useUser } from "../../context/UserContext";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import "./UserDropdown.css";

@@ -1,10 +1,10 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { organizationService } from "../../../services/organization_service";
-import { adminService } from "../../../services/admin_service"; // Para buscar userId pelo email
+import { organizationService } from "../../services/organization_service";
+import { adminService } from "../../services/admin_service"; // Para buscar userId pelo email
 import "../../styles/organizacao.css";
-import Header from "@/app/components/header/header";
+import Header from "@/components/header/header";
 import { Plus, RefreshCcw, Trash, X } from "lucide-react";
 import Link from "next/link";
 

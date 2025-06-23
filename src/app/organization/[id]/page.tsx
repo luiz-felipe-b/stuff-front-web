@@ -1,14 +1,14 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { organizationService } from "../../../../services/organization_service";
-import { adminService } from "../../../../services/admin_service"; // Para buscar userId pelo email
+import { organizationService } from "../../../services/organization_service";
+import { adminService } from "../../../services/admin_service"; // Para buscar userId pelo email
 import "../../../styles/organizacao.css";
-import Header from "@/app/components/header/header";
+import Header from "@/components/header/header";
 import { Mail, Package, Plus, Shield, ShieldCheck, Trash, UserPlus, Users, X } from "lucide-react";
 import Link from "next/link";
-import Breadcrumb from "@/app/components/breadcrumb/breadcrumb";
-import AssetList from "@/app/components/asset-list/asset-list";
+import Breadcrumb from "@/components/breadcrumb/breadcrumb";
+import AssetList from "@/components/asset-list/asset-list";
 import { AssetService } from "@/services/assets_service";
 import { attributeService } from "@/services/attributes_service";
 import { useUser } from "@/context/UserContext";

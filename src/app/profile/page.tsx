@@ -2,8 +2,8 @@
 
 import Head from 'next/head';
 import '../../styles/profile.css';
-import Header from '@/app/components/header/header';
-import { useUser } from "../../../context/UserContext"
+import Header from '@/components/header/header';
+import { useUser } from "../../context/UserContext"
 import { Edit, Save, CircleX, UserCircle2, IdCardLanyard } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { FaUser } from 'react-icons/fa';

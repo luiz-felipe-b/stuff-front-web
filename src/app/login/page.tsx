@@ -2,11 +2,11 @@
 
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
-import "../../styles/login.css";
+import "../styles/login.css";
 import { FaEye, FaEyeSlash, FaEnvelope, FaCheckCircle } from "react-icons/fa";
-import { authService } from "../../../services/login_service";
-import { adminService } from "../../../services/admin_service";
-import { useUser } from "../../../context/UserContext";
+import { authService } from "../../services/login_service";
+import { adminService } from "../../services/admin_service";
+import { useUser } from "../../context/UserContext";
 
 const LoginPage: React.FC = () => {
   const [email, setEmail] = useState("");

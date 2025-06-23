@@ -2,8 +2,8 @@
 
 import Head from 'next/head';
 import '../../styles/dashboard.css';
-import Header from '@/app/components/header/header';
-import { useUser } from "../../../context/UserContext"
+import Header from '@/components/header/header';
+import { useUser } from "../../context/UserContext"
 
 export default function Dashboard() {
   const { user } = useUser();

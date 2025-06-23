@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import "../../styles/register.css";
 import { FaEnvelope, FaUser, FaLock, FaEyeSlash, FaEye } from "react-icons/fa";
-import { RegisterService } from "../../../services/register_service";
+import { RegisterService } from "../../services/register_service";
 import { useRouter } from "next/navigation";
 
 const RegisterPage: React.FC = () => {

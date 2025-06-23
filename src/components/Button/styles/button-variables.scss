@@ -1,0 +1,24 @@
+// Color palettes
+$palettes: (
+    "default": ("main": #F89F3C,
+        "highlight": #F4A64E,
+        "dark": #DA8627,
+        "contrast": #FFF0E0,
+    ),
+    "danger": ("main": #dc3545,
+        "dark": #c82333,
+        "darker": #bd2130,
+        "light": #f5c6cb,
+        "lighter": #f8d7da,
+        "contrast": #ffffff,
+    ),
+    "success": ("main": #28a745,
+        "dark": #218838,
+        "darker": #1e7e34,
+        "light": #c3e6cb,
+        "lighter": #d1e7dd,
+        "contrast": #ffffff,
+    ),
+);
+
+$button-bottom-length: 8px;

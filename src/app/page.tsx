@@ -1,10 +1,14 @@
 import React from 'react';
-import './styles/home.css';
+import '../styles/home.css';
+import Button from '@/components/Button/Button';
 
 export default function Home() {
   return (
     <div className="root">
 
+      <Button variant='primary' size='md' className='button' palette='default' disabled>
+        <span className="button-text">Começar</span>
+      </Button>
       <nav className="navbar">
         <div className="logo">Stuff.</div>
         <ul className="nav-links">

@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from 'react';
-import { adminService } from '../../../services/admin_service';
+import { adminService } from '../../services/admin_service';
 import '../../styles/admin.css';
 
 interface User {

@@ -7,8 +7,8 @@ import { useRouter, useSearchParams } from "next/navigation";
 
 import '../../styles/reset-password.css';
 
-const ResetPasswordPage: React.FC = () => {
 
+function ResetPasswordForm() {
   const [formData, setFormData] = useState({
     password: "",
     passwordConfirm: "",
@@ -18,13 +18,12 @@ const ResetPasswordPage: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState<string | undefined>(undefined);
   const [error, setError] = useState("");
-  
+
   const router = useRouter();
   const searchParams = useSearchParams();
-  
+
   const token = searchParams.get('token');
   const [isTokenValid, setIsTokenValid] = useState<boolean>(!!(token && token.trim() !== ""));
-
 
   useEffect(() => {
     const tokenFromUrl = searchParams.get('token');
@@ -76,16 +75,12 @@ const ResetPasswordPage: React.FC = () => {
 
     setLoading(true);
     try {
-
       const resetPasswordInfo = { token: token as string, newPassword: formData.password };
-
       await authService.resetPassword(resetPasswordInfo);
       setSuccess("Senha trocada com sucesso! Faça o login com sua nova senha.");
-
       setTimeout(() => {
         router.push("/pages/login");
       }, 2000);
-
     } catch (error: any) {
       if (error.response) {
         switch (error.response.status) {
@@ -106,103 +101,105 @@ const ResetPasswordPage: React.FC = () => {
         }
         return;
       }
-
       setError(error.message || "Erro desconhecido durante o login");
-
     } finally {
       setLoading(false);
     }
   }
 
   return (
-    <Suspense fallback={<div>Carregando...</div>}>
-      <div className="rp-page">
-        <img src="/register_img.png" alt="Background" className="background-image" />
-        <div className="rp-container">
-          <form className="rp-form" onSubmit={handleSubmit}>
-            <h1 className="rp-title">Stuff.</h1>
-            <h2 className="rp-subtitle">Troca de Senha</h2>
-            <p className="rp-description">Tudo certo agora! Digite sua nova senha.</p>
+    <div className="rp-page">
+      <img src="/register_img.png" alt="Background" className="background-image" />
+      <div className="rp-container">
+        <form className="rp-form" onSubmit={handleSubmit}>
+          <h1 className="rp-title">Stuff.</h1>
+          <h2 className="rp-subtitle">Troca de Senha</h2>
+          <p className="rp-description">Tudo certo agora! Digite sua nova senha.</p>
 
-            {error && <div className="error-message">{error}</div>}
-            {success && (
-              <div className="success-message">
-                <FaCheckCircle className="success-icon" />
-                {success}. Redirecionando...
-              </div>
-            )}
-
-            <div className="input-container">
-              <FaLock className="input-icon" />
-              <input
-                type={showPassword ? "text" : "password"}
-                disabled={!isTokenValid}
-                name="password"
-                placeholder="Nova Senha"
-                className="input-field"
-                value={formData.password}
-                onChange={handleChange}
-                required
-              />
-              <div
-                className="input-icon-right"
-                onClick={() => setShowPassword(!showPassword)}
-              >
-                {showPassword ? <FaEyeSlash /> : <FaEye />}
-              </div>
+          {error && <div className="error-message">{error}</div>}
+          {success && (
+            <div className="success-message">
+              <FaCheckCircle className="success-icon" />
+              {success}. Redirecionando...
             </div>
+          )}
 
-            <div className="password-rules">
-              <p className={passwordRules.hasUppercase ? "rule valid" : formData.password ? "rule invalid" : "rule"}>
-                Pelo menos 1 letra maiúscula
-              </p>
-              <p className={passwordRules.hasLowercase ? "rule valid" : formData.password ? "rule invalid" : "rule"}>
-                Pelo menos 1 letra minúscula
-              </p>
-              <p className={passwordRules.hasNumber ? "rule valid" : formData.password ? "rule invalid" : "rule"}>
-                Pelo menos 1 número
-              </p>
-              <p className={passwordRules.hasSpecialChar ? "rule valid" : formData.password ? "rule invalid" : "rule"}>
-                Pelo menos 1 caractere especial
-              </p>
-              <p className={passwordRules.hasValidLength ? "rule valid" : formData.password ? "rule invalid" : "rule"}>
-                Entre 12 e 16 caracteres
-              </p>
-            </div>
-
-            <div className="input-container">
-              <FaLock className="input-icon-left" />
-              <input
-                disabled={!isTokenValid}
-                type={showPassword ? "text" : "password"}
-                name="passwordConfirm"
-                placeholder="Confirme sua senha"
-                className="input-field"
-                value={formData.passwordConfirm}
-                onChange={handleChange}
-                required
-              />
-              <div
-                className="input-icon-right"
-                onClick={() => setShowPassword(!showPassword)}
-              >
-                {showPassword ? <FaEyeSlash /> : <FaEye />}
-              </div>
-            </div>
-
-            <button
-              type="submit"
-              className="rp-button"
-              disabled={!isTokenValid || loading}
+          <div className="input-container">
+            <FaLock className="input-icon" />
+            <input
+              type={showPassword ? "text" : "password"}
+              disabled={!isTokenValid}
+              name="password"
+              placeholder="Nova Senha"
+              className="input-field"
+              value={formData.password}
+              onChange={handleChange}
+              required
+            />
+            <div
+              className="input-icon-right"
+              onClick={() => setShowPassword(!showPassword)}
             >
-              {loading ? "Trocando..." : "Trocar Senha"}
-            </button>
+              {showPassword ? <FaEyeSlash /> : <FaEye />}
+            </div>
+          </div>
 
-          </form>
-        </div>
+          <div className="password-rules">
+            <p className={passwordRules.hasUppercase ? "rule valid" : formData.password ? "rule invalid" : "rule"}>
+              Pelo menos 1 letra maiúscula
+            </p>
+            <p className={passwordRules.hasLowercase ? "rule valid" : formData.password ? "rule invalid" : "rule"}>
+              Pelo menos 1 letra minúscula
+            </p>
+            <p className={passwordRules.hasNumber ? "rule valid" : formData.password ? "rule invalid" : "rule"}>
+              Pelo menos 1 número
+            </p>
+            <p className={passwordRules.hasSpecialChar ? "rule valid" : formData.password ? "rule invalid" : "rule"}>
+              Pelo menos 1 caractere especial
+            </p>
+            <p className={passwordRules.hasValidLength ? "rule valid" : formData.password ? "rule invalid" : "rule"}>
+              Entre 12 e 16 caracteres
+            </p>
+          </div>
+
+          <div className="input-container">
+            <FaLock className="input-icon-left" />
+            <input
+              disabled={!isTokenValid}
+              type={showPassword ? "text" : "password"}
+              name="passwordConfirm"
+              placeholder="Confirme sua senha"
+              className="input-field"
+              value={formData.passwordConfirm}
+              onChange={handleChange}
+              required
+            />
+            <div
+              className="input-icon-right"
+              onClick={() => setShowPassword(!showPassword)}
+            >
+              {showPassword ? <FaEyeSlash /> : <FaEye />}
+            </div>
+          </div>
+
+          <button
+            type="submit"
+            className="rp-button"
+            disabled={!isTokenValid || loading}
+          >
+            {loading ? "Trocando..." : "Trocar Senha"}
+          </button>
+
+        </form>
       </div>
-    </Suspense>
+    </div>
   );
 }
 
-export default ResetPasswordPage;
+export default function ResetPasswordPage() {
+  return (
+    <Suspense fallback={<div>Carregando...</div>}>
+      <ResetPasswordForm />
+    </Suspense>
+  );
+}

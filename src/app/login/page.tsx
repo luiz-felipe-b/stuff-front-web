@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import LoginForm from "../../components/LoginForm/LoginForm";
 import { useRouter } from "next/navigation";
 import { FaEye, FaEyeSlash, FaEnvelope, FaCheckCircle } from "react-icons/fa";
 import { authService } from "../../services/login_service";
@@ -92,76 +93,30 @@ const LoginPage: React.FC = () => {
   };
 
   return (
-    <div className="login-page">
-      <div className="login-form-container">
-        <h1 className="login-title">Stuff.</h1>
-
-        <h2 className="login-subtitle">E aí? É bom te ver de novo!</h2>
-        <p className="login-description">
-          Faça seu login e organize-se agora mesmo
-        </p>
-
-        {error && <div className="error-message">{error}</div>}
-
-        {success && (
-          <div className="success-message">
-            <FaCheckCircle className="success-icon" />
-            Login bem-sucedido! Redirecionando...
-          </div>
-        )}
-
-        <form onSubmit={handleLogin} className="login-form">
-          <div className="input-container">
-            <FaEnvelope className="input-icon" />
-            <input
-              type="email"
-              placeholder="E-mail"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              disabled={loading || success}
-            />
-          </div>
-
-          <div className="input-container">
-            <input
-              type={showPassword ? "text" : "password"}
-              placeholder="Senha"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              disabled={loading || success}
-            />
-            <div
-              className="input-icon"
-              onClick={() =>
-                !loading && !success && setShowPassword(!showPassword)
-              }
-            >
-              {showPassword ? <FaEyeSlash /> : <FaEye />}
-            </div>
-          </div>
-
-          <button
-            type="submit"
-            className="login-button"
-            disabled={loading || success}
-          >
-            {loading ? "Carregando..." : success ? "Sucesso!" : "Entrar"}
-          </button>
-
-          <a href="/pages/forgot-password" className="forgot-password">
-            Esqueceu sua senha?
-          </a>
-          <a href="/pages/register" className="create-account">
-            Não tem uma conta? Crie uma agora!
-          </a>
-        </form>
-      </div>
-      <div className="login-image-container">
-        <img src="/img_login.png" alt="Login" />
-      </div>
-    </div>
+    <main className="min-h-screen flex flex-col md:flex-row bg-stuff-bg items-center justify-center">
+      {/* Left: Form Section */}
+      <section className="w-full md:w-[480px] flex flex-col justify-center items-center px-8 py-12 bg-white rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.08)] md:mr-8">
+        <h1 className="text-[40px] leading-[48px] font-bold text-stuff-dark mb-2 tracking-tight">Stuff.</h1>
+        <h2 className="text-lg md:text-xl font-semibold text-stuff-mid mb-2">E aí? É bom te ver de novo!</h2>
+        <p className="text-stuff-dark text-base mb-8">Faça seu login e organize-se agora mesmo</p>
+        <LoginForm
+          loading={loading}
+          error={error}
+          success={success}
+          email={email}
+          password={password}
+          showPassword={showPassword}
+          onEmailChange={(e: React.ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
+          onPasswordChange={(e: React.ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)}
+          onShowPasswordToggle={() => !loading && !success && setShowPassword(!showPassword)}
+          onSubmit={handleLogin}
+        />
+      </section>
+      {/* Right: Image Section */}
+      <section className="hidden md:flex flex-1 h-full items-center justify-center p-0 md:p-8">
+        <img src="/img_login.png" alt="Login" className="w-[480px] max-w-full h-auto rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.08)] object-cover" />
+      </section>
+    </main>
   );
 };
 

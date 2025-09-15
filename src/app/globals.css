@@ -1,42 +1,11 @@
-@import "tailwindcss";
-@import url('https://fonts.googleapis.com/css2?family=Onest:wght@100..900&display=swap');
+@import 'tailwindcss';
 
-body, main, footer, nav, div, h1, h2, h3, p {
-  font-family: 'Onest', Arial, Helvetica, sans-serif;
-}
-
-:root {
-  --high: #ffc685;
-  --light: #f89f3c;
-  --mid: #1a1815;
-  --escuro: #9C580C;
-
-  --bg: #FFF0E0;
-  --text: #333;
-  --border-radius: 12px;
-  --transition: all 0.3s ease;
-}
-
-body {
-  margin: 0;
-  font-family: 'Onest', sans-serif;
-  background: #F4A64E;
-}
-
-.main {
-  flex: 1;
-  padding: 40px;
-  color: #333;
-}
-
-.main h1 {
-  font-size: 32px;
-  color: #F4A64E;
-  font-weight: 900;
-  margin-bottom: 10px;
-}
-
-.main p {
-  font-size: 18px;
-  color: #444;
+@theme {
+  --color-stuff-high: #FFC685;
+  --color-stuff-light: #F89F3C;
+  --color-stuff-mid: #DA8627;
+  --color-stuff-dark: #9C580C;
+  --color-stuff-low: #362007;
+  --color-stuff-white: #FFF0E0;
+  --color-stuff-black: #0E0700;
 }

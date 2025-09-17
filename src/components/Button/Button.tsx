@@ -22,11 +22,8 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(({
 }, ref) => {
   const isIconOnly = !children && (iconBefore || iconAfter);
 
-
-  // Cartoonish keyboard key style
-  // Base: thick black border, bottom border thickest, rounded, playful bg
-  // Pressed: bottom border shrinks, top border thickens, button shifts down
-  const base = "inline-flex items-center justify-center font-semibold transition-all duration-75 focus:outline-none select-none rounded-lg";
+  // Tailwind classes for variants, palettes, sizes
+  const base = "inline-flex items-center justify-center font-semibold transition focus:outline-none disabled:opacity-60 rounded-2xl shadow-[0_4px_16px_rgba(0,0,0,0.10)] border border-stuff-low active:shadow-sm active:translate-y-[2px]";
   const sizeMap = {
     sm: "text-sm px-3 py-1.5",
     md: "text-base px-4 py-2",

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { FaEye, FaEyeSlash, FaEnvelope } from "react-icons/fa";
+import { Mail, Lock, Eye, EyeOff } from "lucide-react";
 import Input from "../Input/Input";
 import Button from "../Button/Button";
 import Alert from "../Alert/Alert";
@@ -32,7 +32,7 @@ const LoginForm: React.FC<LoginFormProps> = ({
   onSubmit,
 }) => {
   return (
-    <form onSubmit={onSubmit} className="w-full flex flex-col gap-6">
+    <form onSubmit={onSubmit} className="w-full font-onest flex flex-col gap-6">
       {error && <Alert type="error">{error}</Alert>}
       {success && <Alert type="success">Login bem-sucedido! Redirecionando...</Alert>}
       <Input
@@ -42,7 +42,7 @@ const LoginForm: React.FC<LoginFormProps> = ({
         onChange={onEmailChange}
         required
         disabled={loading || success}
-        icon={<FaEnvelope />}
+        icon={<Mail />}
       />
       <div className="relative flex items-center">
         <Input
@@ -53,6 +53,7 @@ const LoginForm: React.FC<LoginFormProps> = ({
           required
           disabled={loading || success}
           className="pl-4 pr-12"
+          icon={<Lock />}
         />
         <button
           type="button"
@@ -60,7 +61,7 @@ const LoginForm: React.FC<LoginFormProps> = ({
           onClick={onShowPasswordToggle}
           tabIndex={-1}
         >
-          {showPassword ? <FaEyeSlash /> : <FaEye />}
+          {showPassword ? <EyeOff /> : <Eye />}
         </button>
       </div>
       <Button
@@ -72,7 +73,7 @@ const LoginForm: React.FC<LoginFormProps> = ({
         loading={loading}
         disabled={loading || success}
       >
-        {loading ? "Carregando..." : success ? "Sucesso!" : "Entrar"}
+        {loading ? "carregando..." : success ? "sucesso!" : "entrar"}
       </Button>
       <div className="flex flex-col gap-2 mt-2">
         <a href="/pages/forgot-password" className="text-sm text-stuff-dark hover:underline text-center">Esqueceu sua senha?</a>

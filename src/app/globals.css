@@ -1,11 +1,52 @@
 @import 'tailwindcss';
+@import url('https://fonts.googleapis.com/css2?family=Onest:wght@100..900&display=swap');
 
 @theme {
+  --color-*: initial;
+  /* Primary brand colors */
   --color-stuff-high: #FFC685;
   --color-stuff-light: #F89F3C;
   --color-stuff-mid: #DA8627;
   --color-stuff-dark: #9C580C;
   --color-stuff-low: #362007;
+  /* Contrast brand colors */
   --color-stuff-white: #FFF0E0;
   --color-stuff-black: #0E0700;
+  /* Gray scale colors */
+  --color-stuff-gray-100: #C7BCB2;
+  --color-stuff-gray-200: #ADA298;
+  --color-stuff-gray-300: #847B74;
+  --color-stuff-gray-400: #5B5450;
+  --color-stuff-gray-500: #322D2C;
+  /* Colors for success and confirmations */
+  --color-success-light: #5ECC63;
+  --color-success-base: #24AB2B;
+  --color-success-dark: #004804;
+  /* Colors for errors and dangers */
+  --color-danger-light: #F65757;
+  --color-danger-base: #C62828;
+  --color-danger-dark: #770909;
+  /* Colors for warnings and cautions */
+  --color-warning-light: #FFD34F;
+  --color-warning-base: #EDB714;
+  --color-warning-dark: #674F08;
+  /* Colors for the "new" theme (for updates and new features) */
+  --color-new-light: #5EEEE3;
+  --color-new-base: #00C7B7;
+  --color-new-dark: #0E5B56;
+
+  /* Font family */
+  --font-sans: 'Onest', sans-serif;
+  /* Font sizes */
+  --font-size-xs: 10px;
+  --font-size-sm: 12px;
+  --font-size-md: 16px;
+  --font-size-lg: 20px;
+  --font-size-xl: 24px;
+  --font-size-2xl: 30px;
+  /* Font weights */
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-bold: 700;
+  --font-weight-extrabold: 800;
 }

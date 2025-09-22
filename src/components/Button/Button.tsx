@@ -22,39 +22,48 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(({
 }, ref) => {
   const isIconOnly = !children && (iconBefore || iconAfter);
 
-  // Tailwind classes for variants, palettes, sizes
-  const base = "inline-flex items-center justify-center font-semibold transition focus:outline-none disabled:opacity-60";
+
+  // Cartoonish keyboard key style
+  // Base: thick black border, bottom border thickest, rounded, playful bg
+  // Pressed: bottom border shrinks, top border thickens, button shifts down
+  const base = "inline-flex items-center justify-center font-semibold transition-all duration-75 focus:outline-none disabled:opacity-60 select-none rounded-lg border-b-4 border-t-2 border-l-2 border-r-2";
   const sizeMap = {
     sm: "text-sm px-3 py-1.5",
     md: "text-base px-4 py-2",
     lg: "text-lg px-6 py-3",
   };
+  // Variant colors (cartoonish, playful)
   const variantMap: Record<string, string> = {
-    primary: "bg-stuff-mid text-white hover:bg-stuff-dark",
-    secondary: "bg-white text-stuff-mid border border-stuff-mid hover:bg-stuff-bg",
-    outline: "bg-transparent text-stuff-mid border border-stuff-mid hover:bg-stuff-bg",
-    tertiary: "bg-stuff-bg text-stuff-mid border border-stuff-bg hover:bg-stuff-mid hover:text-white",
+    primary: "border-2",
+    secondary: "border-2 bg-transparent",
+    tertiary: "border-transparent bg-transparent",
   };
-  const paletteMap = {
-    default: "",
-    success: "bg-green-600 hover:bg-green-700 text-white",
-    danger: "bg-red-600 hover:bg-red-700 text-white",
+  const paletteMap: Record<string, string> = {
+    default: "bg-stuff-light text-stuff-white border-stuff-mid",
+    success: "bg-success-light text-stuff-white border-success-base",
+    danger: "bg-danger-light text-stuff-white border-danger-base",
+    warning: "bg-warning-light text-stuff-white border-warning-base",
   };
   const iconOnly = isIconOnly ? "p-2" : "";
   const loadingClass = loading ? "opacity-60 cursor-wait" : "";
   const fullWidthClass = fullWidth ? "w-full" : "";
 
   // Compose classes
-  const classNames = [
+  let classNames = [
     base,
     sizeMap[size],
+    paletteMap[palette],
     variantMap[variant],
-    palette !== "default" ? paletteMap[palette] : "",
     iconOnly,
     loadingClass,
     fullWidthClass,
     className,
   ].filter(Boolean).join(" ");
+
+  // Add cartoonish pressed effect: shrink bottom border, thicken top (no movement)
+  // Only border thickness changes on active
+  classNames +=
+    " active:border-b-2 active:border-t-4";
 
   const content = (
     <span className="flex items-center gap-2">

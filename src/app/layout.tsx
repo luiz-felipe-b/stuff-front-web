@@ -14,12 +14,6 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="pt-br">
-      <head>
-        <link
-          href="https://fonts.googleapis.com/css2?family=Onest:wght@100..900&display=swap"
-          rel="stylesheet"
-        />
-      </head>
       <body className="antialiased">
         <UserProvider>
           {children}

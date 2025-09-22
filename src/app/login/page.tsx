@@ -93,9 +93,9 @@ const LoginPage: React.FC = () => {
   };
 
   return (
-    <main className="min-h-screen flex flex-col md:flex-row bg-stuff-bg items-center justify-center">
+    <main className="min-h-screen flex flex-col md:flex-row bg-stuff-white items-center justify-center">
       {/* Left: Form Section */}
-      <section className="w-full md:w-[480px] flex flex-col justify-center items-center px-8 py-12 bg-white rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.08)] md:mr-8">
+      <section className="w-full md:w-[480px] flex flex-col justify-center items-center px-8 py-12 bg-stuff-white rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.08)] md:mr-8">
         <h1 className="text-[40px] leading-[48px] font-bold text-stuff-dark mb-2 tracking-tight">Stuff.</h1>
         <h2 className="text-lg md:text-xl font-semibold text-stuff-mid mb-2">E aí? É bom te ver de novo!</h2>
         <p className="text-stuff-dark text-base mb-8">Faça seu login e organize-se agora mesmo</p>

@@ -26,7 +26,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(({
   // Cartoonish keyboard key style
   // Base: thick black border, bottom border thickest, rounded, playful bg
   // Pressed: bottom border shrinks, top border thickens, button shifts down
-  const base = "inline-flex items-center justify-center font-semibold transition-all duration-75 focus:outline-none disabled:opacity-60 select-none rounded-lg border-b-4 border-t-2 border-l-2 border-r-2";
+  const base = "inline-flex items-center justify-center font-semibold transition-all duration-75 focus:outline-none select-none rounded-lg";
   const sizeMap = {
     sm: "text-sm px-3 py-1.5",
     md: "text-base px-4 py-2",
@@ -45,6 +45,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(({
     warning: "bg-warning-light text-stuff-white border-warning-base",
   };
   const iconOnly = isIconOnly ? "p-2" : "";
+  const disabledClass = disabled ? "opacity-60 cursor-not-allowed border-b-2 border-t-4 border-l-2 border-r-2" : "border-b-4 border-t-2 border-l-2 border-r-2 cursor-pointer active:border-b-2 active:border-t-4";
   const loadingClass = loading ? "opacity-60 cursor-wait" : "";
   const fullWidthClass = fullWidth ? "w-full" : "";
 
@@ -58,12 +59,8 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(({
     loadingClass,
     fullWidthClass,
     className,
+    disabledClass,
   ].filter(Boolean).join(" ");
-
-  // Add cartoonish pressed effect: shrink bottom border, thicken top (no movement)
-  // Only border thickness changes on active
-  classNames +=
-    " active:border-b-2 active:border-t-4";
 
   const content = (
     <span className="flex items-center gap-2">

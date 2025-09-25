@@ -93,7 +93,7 @@ const LoginPage: React.FC = () => {
   };
 
   return (
-    <main className="min-h-screen flex flex-col md:flex-row bg-stuff-white items-center justify-center">
+  <main className="min-h-screen flex flex-col md:flex-row items-center justify-center bg-[url('/pattern_faded.png')] bg-repeat bg-[length:98px_98px]">
       {/* Left: Form Section */}
       <section className="w-full md:w-[480px] flex flex-col justify-center items-center px-8 py-12 bg-stuff-white rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.08)] md:mr-8">
         <h1 className="text-[40px] leading-[48px] font-bold text-stuff-dark mb-2 tracking-tight">Stuff.</h1>
@@ -112,10 +112,7 @@ const LoginPage: React.FC = () => {
           onSubmit={handleLogin}
         />
       </section>
-      {/* Right: Image Section */}
-      <section className="hidden md:flex flex-1 h-full items-center justify-center p-0 md:p-8">
-        <img src="/img_login.png" alt="Login" className="w-[480px] max-w-full h-auto rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.08)] object-cover" />
-      </section>
+      <div className="w-full"></div>
     </main>
   );
 };

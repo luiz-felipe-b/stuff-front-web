@@ -32,7 +32,7 @@ const LoginForm: React.FC<LoginFormProps> = ({
   onSubmit,
 }) => {
   return (
-    <form onSubmit={onSubmit} className="w-full font-onest flex flex-col gap-6">
+    <form onSubmit={onSubmit} className="w-full h-full font-onest flex flex-col gap-6">
       {error && <Alert type="error">{error}</Alert>}
       {success && <Alert type="success">Login bem-sucedido! Redirecionando...</Alert>}
       <Input

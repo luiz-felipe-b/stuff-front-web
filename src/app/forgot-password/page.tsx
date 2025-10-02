@@ -5,7 +5,7 @@ import { FaCheckCircle, FaEnvelope } from 'react-icons/fa';
 import { authService } from '@/services/login_service';
 import { useRouter } from "next/navigation";
 
-import '../../styles/forgot-password.css';
+// import '../../styles/forgot-password.css';
 
 const ForgotPasswordPage: React.FC = () => {
 

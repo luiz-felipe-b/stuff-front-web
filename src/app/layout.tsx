@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { UserProvider } from "@/context/UserContext";
+import TailwindToaster from "@/components/TailwindToaster/TailwindToaster";
 
 export const metadata: Metadata = {
   title: "Estoque Inteligente",
@@ -14,8 +15,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="pt-br">
-      <body className="antialiased">
+      <body className="antialiased font-onest">
         <UserProvider>
+          <TailwindToaster />
           {children}
         </UserProvider>
       </body>

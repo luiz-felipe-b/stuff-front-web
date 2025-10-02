@@ -1,18 +1,20 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { organizationService } from "../../services/organization_service";
+import { organizationsApi } from "@/services/api";
 import { adminService } from "../../services/admin_service"; // Para buscar userId pelo email
-import "../../styles/organizacao.css";
+// import "../../styles/organizacao.css";
 import Header from "@/components/header/header";
 import { Plus, RefreshCcw, Trash, X } from "lucide-react";
+import { ListItem } from "@/components/list";
+import Button from "@/components/Button/Button";
 import Link from "next/link";
 
 interface Organization {
   id: string;
   name: string;
   slug: string;
-  description: string;
+  description: string | null | undefined;
 }
 
 interface Member {
@@ -44,18 +46,22 @@ const OrganizacoesPage = () => {
   const router = useRouter();
 
   // Buscar todas as organizações ao carregar a página
+
   useEffect(() => {
-    fetchAllOrganizations();
+    fetchUserOrganizations();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  async function fetchAllOrganizations() {
+  async function fetchUserOrganizations() {
     setLoading(true);
     setErrorMsg("");
     setSuccessMsg("");
     try {
-      const response = await organizationService.getAllOrganizations();
-      setOrganizations(response?.data || response || []);
+      const token = localStorage.getItem("token");
+      const response = await organizationsApi.getOrganizations(undefined, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
+      setOrganizations(response.data || []);
     } catch (err) {
       setErrorMsg("Erro ao buscar organizações. Tente novamente mais tarde.");
     }
@@ -67,8 +73,15 @@ const OrganizacoesPage = () => {
     setErrorMsg("");
     setSuccessMsg("");
     try {
-      const data = await organizationService.getMembers(org.id);
-      setMembers(data.data || data || []);
+      const token = localStorage.getItem("token");
+      const data = await organizationsApi.getOrganizationsIdmembers(org.id, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
+      setMembers((data.data || []).map((m: any) => ({
+        id: m.id,
+        email: m.email,
+        role: m.role,
+      })));
     } catch (err) {
       setErrorMsg("Erro ao buscar membros da organização.");
     }
@@ -79,7 +92,7 @@ const OrganizacoesPage = () => {
     setSelectedOrg(org);
     setForm({
       name: org.name,
-      description: org.description,
+      description: org.description ?? "",
       password: "",
       slug: org.slug,
     });
@@ -102,8 +115,16 @@ const OrganizacoesPage = () => {
       if (selectedOrg) {
         setErrorMsg("Atualização de organização não implementada.");
       } else {
-        await organizationService.createOrganization(form);
-        await fetchAllOrganizations();
+        const token = localStorage.getItem("token");
+        await organizationsApi.postOrganizations({
+          name: form.name,
+          slug: form.slug,
+          description: form.description,
+          password: form.password,
+        }, {
+          headers: token ? { Authorization: `Bearer ${token}` } : {},
+        });
+        await fetchUserOrganizations();
         setForm({ name: "", description: "", password: "", slug: "" });
         setSuccessMsg("Organização criada com sucesso!");
         setShowCreateModal(false); // Fechar modal após criar
@@ -130,8 +151,11 @@ const OrganizacoesPage = () => {
       setErrorMsg("");
       setSuccessMsg("");
       try {
-        await organizationService.deleteOrganization(selectedOrg.id);
-        await fetchAllOrganizations();
+        const token = localStorage.getItem("token");
+        await organizationsApi.deleteOrganizationsId(selectedOrg.id, {
+          headers: token ? { Authorization: `Bearer ${token}` } : {},
+        });
+        await fetchUserOrganizations();
         setSelectedOrg(null);
         setForm({ name: "", description: "", password: "", slug: "" });
         setMembers([]);
@@ -162,7 +186,10 @@ const OrganizacoesPage = () => {
         setLoading(false);
         return;
       }
-      await organizationService.addMember(selectedOrg.id, { userId, role });
+      const token = localStorage.getItem("token");
+      await organizationsApi.postOrganizationsIdmembers(selectedOrg.id, { userId, role }, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
       await fetchMembers(selectedOrg);
       setSuccessMsg("Membro adicionado com sucesso!");
       setEmail("");
@@ -180,11 +207,10 @@ const OrganizacoesPage = () => {
     setErrorMsg("");
     setSuccessMsg("");
     try {
-      await organizationService.updateMemberRole(
-        selectedOrg.id,
-        userId,
-        newRole
-      );
+      const token = localStorage.getItem("token");
+      await organizationsApi.patchOrganizationsIdmembersUserId(selectedOrg.id, userId, { role: newRole }, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
       await fetchMembers(selectedOrg);
       setSuccessMsg("Função do membro atualizada com sucesso!");
     } catch (err) {
@@ -199,7 +225,10 @@ const OrganizacoesPage = () => {
     setErrorMsg("");
     setSuccessMsg("");
     try {
-      await organizationService.deleteMember(selectedOrg.id, userId);
+      const token = localStorage.getItem("token");
+      await organizationsApi.deleteOrganizationsIdmembersUserId(selectedOrg.id, userId, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
       await fetchMembers(selectedOrg);
       setSuccessMsg("Membro removido com sucesso!");
     } catch (err) {
@@ -210,70 +239,72 @@ const OrganizacoesPage = () => {
 
   return (
     <>
-      <Header activeTab="organization" />
-      <main className="main">
-        {successMsg && <div className="success-message">{successMsg}</div>}
-        {errorMsg && <div className="error-message">{errorMsg}</div>}
+      <div className="bg-[url('/pattern_faded.png')] bg-repeat bg-[length:98px_98px]">
+        <Header activeTab="organization" />
+        <main className="min-h-screen flex flex-col items-center justify-start px-4">
+          <section className="w-full bg-stuff-white rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.08)] flex flex-col items-center py-10 px-6 md:px-16">
+            {successMsg && <div className="success-message mb-4">{successMsg}</div>}
+            {errorMsg && <div className="error-message mb-4">{errorMsg}</div>}
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2 mb-6 w-full">
+              <div>
+                <h1 className="text-3xl font-bold text-stuff-mid mb-1">Minhas Organizações</h1>
+                <p className="text-stuff-dark text-lg">Junte a galera e seus ativos!</p>
+              </div>
+              <div className="flex flex-row gap-2">
+                <Button
+                  variant="secondary"
+                  palette="default"
+                  size="md"
+                  iconBefore={<RefreshCcw className={loading ? "animate-spin" : ""} />}
+                  onClick={fetchUserOrganizations}
+                  title="Atualizar"
+                  disabled={loading}
+                  aria-label="Atualizar"
+                />
+                <Button
+                  variant="primary"
+                  palette="default"
+                  size="md"
+                  iconBefore={<Plus />}
+                  onClick={() => setShowCreateModal(true)}
+                  title="Nova organização"
+                  aria-label="Nova organização"
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-1 gap-4 w-full">
+              {organizations.length === 0 && (
+                <div className="text-center text-stuff-gray-100 py-8">Nenhuma organização encontrada.</div>
+              )}
+              {organizations.map((org) => (
+                <ListItem
+                  key={org.id}
+                  onClick={() => handleSelectOrg(org)}
+                  rightContent={
+                    <Button
+                      variant="secondary"
+                      palette="danger"
+                      size="sm"
+                      iconBefore={<Trash />}
+                      className="ml-2"
+                      title="Deletar organização"
+                      onClick={async (e) => {
+                        e.stopPropagation();
+                        setSelectedOrg(org);
+                        await handleDelete();
+                      }}
+                    />
+                  }
+                >
+                  <span className="font-semibold text-lg text-stuff-black truncate max-w-[200px]">{org.name}</span>
+                  <span className="text-stuff-dark truncate max-w-[300px]">{org.description}</span>
+                </ListItem>
+              ))}
+            </div>
+          </section>
+        </main>
+      </div>
 
-        <h1>Minhas Organizações</h1>
-        <div
-          style={{
-            display: "flex",
-            marginBottom: 8,
-            alignItems: "top",
-            justifyContent: "space-between",
-          }}
-        >
-          <p>Junte a galera e seus ativos!</p>
-          <div style={{ display: "flex", gap: 8 }}>
-            <button
-                style={{ alignContent: "center", justifyContent: "center" }}
-                onClick={() => fetchAllOrganizations()}
-              >
-              <RefreshCcw />
-
-            </button>
-            <button
-              style={{ alignContent: "center", justifyContent: "center" }}
-              onClick={() => setShowCreateModal(true)}
-            >
-              <Plus />
-            </button>
-          </div>
-        </div>
-
-        <div>
-          <ul>
-            {organizations.map((org) => (
-              <Link
-                key={org.id}
-                href={`/pages/organization/${org.id}`}
-                onClick={() => handleSelectOrg(org)}
-                style={{ textDecoration: "none", color: "inherit" }}
-              >
-                <li className="organization-item">
-                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                    <span style={{ fontWeight: 500, whiteSpace: "nowrap", width: "300px", maxWidth: "200px" }}>
-                      {org.name}
-                    </span>
-                    <span style={{ whiteSpace: "nowrap" }}>{org.description}</span>
-                  </div>
-                  {/* <button onClick={() => handleSelectOrg(org)} style={{ marginRight: 8 }}>Selecionar</button> */}
-                  <button
-                    onClick={async () => {
-                      setSelectedOrg(org);
-                      await handleDelete();
-                    }}
-                    className="danger"
-                  >
-                    <Trash />
-                  </button>
-                </li>
-              </Link>
-            ))}
-          </ul>
-        </div>
-      </main>
 
       {/* Modal flutuante para criar organização */}
       {showCreateModal && (

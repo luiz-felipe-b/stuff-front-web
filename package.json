@@ -10,6 +10,7 @@
     "generate:api-types": "openapi-zod-client https://stuff-back.fly.dev/docs/json --group-strategy tag-file -o src/api/generated"
   },
   "dependencies": {
+    "@headlessui/react": "^2.2.9",
     "@zodios/core": "^10.9.6",
     "axios": "^1.9.0",
     "i": "^0.3.7",
@@ -17,6 +18,7 @@
     "next": "^15.2.4",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
+    "react-hot-toast": "^2.6.0",
     "react-icons": "^5.5.0",
     "sass": "^1.89.2",
     "zod": "^4.1.9"

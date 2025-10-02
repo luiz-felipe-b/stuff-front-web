@@ -1,9 +1,9 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { organizationService } from "../../../services/organization_service";
+import { organizationsApi } from "@/services/api";
 import { adminService } from "../../../services/admin_service"; // Para buscar userId pelo email
-import "../../../styles/organizacao.css";
+// import "../../../styles/organizacao.css";
 import Header from "@/components/header/header";
 import { Mail, Package, Plus, Shield, ShieldCheck, Trash, UserPlus, Users, X } from "lucide-react";
 import Link from "next/link";
@@ -18,7 +18,10 @@ interface Organization {
     id: string;
     name: string;
     slug: string;
-    description: string;
+    description?: string | null;
+    active?: boolean;
+    createdAt?: string;
+    updatedAt?: string;
 }
 
 interface Member {
@@ -30,10 +33,10 @@ interface Member {
 interface Asset {
     id: string;
     organizationId: string;
-    templateId: string | null;
+    templateId?: string | null;
     creatorUserId: string;
     name: string;
-    description: string;
+    description?: string;
     trashBin: boolean;
     createdAt: string;
     updatedAt: string;
@@ -74,13 +77,14 @@ const SpecificOrganizationPage = () => {
         setErrorMsg("");
         setSuccessMsg("");
         try {
-            // Buscar organização específica pelo ID
-            const orgResponse = await organizationService.getOrganizationById(id);
-            const organization = orgResponse?.data || orgResponse;
-
+            const token = localStorage.getItem("token");
+            const orgResponse = await organizationsApi.getOrganizationsIdentifier(
+                { identifier: id },
+                { headers: token ? { Authorization: `Bearer ${token}` } : {} }
+            );
+            const organization = orgResponse.data;
             if (organization) {
                 setOrg(organization);
-                // Buscar membros da organização
                 await fetchMembers(organization);
             }
         } catch (err) {
@@ -94,8 +98,13 @@ const SpecificOrganizationPage = () => {
         setErrorMsg("");
         setSuccessMsg("");
         try {
-            const assets = await organizationService.getOrganizationAssets(orgId);
-            setAssets(assets.data || []);
+            const token = localStorage.getItem("token");
+            const assetsResp = await organizationsApi.getOrganizationsIdassets(
+                { id: orgId },
+                { headers: token ? { Authorization: `Bearer ${token}` } : {} }
+            );
+            // Map to ensure templateId is present (optional)
+            setAssets((assetsResp.data || []).map((a: any) => ({ ...a, templateId: a.templateId ?? null })));
         } catch (err) {
             setErrorMsg("Erro ao buscar ativos da organização.");
         }
@@ -107,8 +116,12 @@ const SpecificOrganizationPage = () => {
         setErrorMsg("");
         setSuccessMsg("");
         try {
-            const data = await organizationService.getMembers(org.id);
-            setMembers(data.data || data || []);
+            const token = localStorage.getItem("token");
+            const data = await organizationsApi.getOrganizationsIdmembers(
+                { id: org.id },
+                { headers: token ? { Authorization: `Bearer ${token}` } : {} }
+            );
+            setMembers(data.data || []);
         } catch (err) {
             setErrorMsg("Erro ao buscar membros da organização.");
         }
@@ -165,10 +178,12 @@ const SpecificOrganizationPage = () => {
             setErrorMsg("");
             setSuccessMsg("");
             try {
-                await organizationService.deleteOrganization(org.id);
-                // await fetchAllOrganizations();
+                const token = localStorage.getItem("token");
+                await organizationsApi.deleteOrganizationsId(
+                    { id: org.id },
+                    { headers: token ? { Authorization: `Bearer ${token}` } : {} }
+                );
                 setOrg(null);
-                // setForm({ name: "", description: "", password: "", slug: "" });
                 setMembers([]);
                 setSuccessMsg("Organização deletada com sucesso!");
             } catch (err) {
@@ -197,7 +212,11 @@ const SpecificOrganizationPage = () => {
                 setLoading(false);
                 return;
             }
-            await organizationService.addMember(org.id, { userId, role });
+            const token = localStorage.getItem("token");
+            await organizationsApi.postOrganizationsIdmembers(
+                { id: org.id },
+                { body: { userId, role }, headers: token ? { Authorization: `Bearer ${token}` } : {} }
+            );
             await fetchMembers(org);
             setSuccessMsg("Membro adicionado com sucesso!");
             setEmail("");
@@ -215,10 +234,10 @@ const SpecificOrganizationPage = () => {
         setErrorMsg("");
         setSuccessMsg("");
         try {
-            await organizationService.updateMemberRole(
-                org.id,
-                userId,
-                newRole
+            const token = localStorage.getItem("token");
+            await organizationsApi.patchOrganizationsIdmembersUserId(
+                { id: org.id, userId },
+                { body: { role: newRole }, headers: token ? { Authorization: `Bearer ${token}` } : {} }
             );
             await fetchMembers(org);
             setSuccessMsg("Função do membro atualizada com sucesso!");
@@ -234,7 +253,11 @@ const SpecificOrganizationPage = () => {
         setErrorMsg("");
         setSuccessMsg("");
         try {
-            await organizationService.deleteMember(org.id, userId);
+            const token = localStorage.getItem("token");
+            await organizationsApi.deleteOrganizationsIdmembersUserId(
+                { id: org.id, userId },
+                { headers: token ? { Authorization: `Bearer ${token}` } : {} }
+            );
             await fetchMembers(org);
             setSuccessMsg("Membro removido com sucesso!");
         } catch (err) {

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { ChevronRight, Home } from "lucide-react";
-import "./breadcrumb.css";
+// import "./breadcrumb.css";
 
 interface BreadcrumbItem {
   label: string;

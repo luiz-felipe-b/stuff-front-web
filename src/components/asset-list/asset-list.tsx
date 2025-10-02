@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo } from "react";
 import { Trash2, Edit3, Package, Calendar, User, Eye, MoreVertical, Search, Filter, X, Hash, Weight, CalendarDays, Plus, Type, Ruler } from "lucide-react";
-import "./asset-list.css";
+// import "./asset-list.css";
 import { AssetService } from "@/services/assets_service";
 
 interface AttributeValue {

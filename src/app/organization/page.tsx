@@ -14,7 +14,7 @@ interface Organization {
   id: string;
   name: string;
   slug: string;
-  description: string | null | undefined;
+  description?: string | null;
 }
 
 interface Member {
@@ -33,9 +33,7 @@ const OrganizacoesPage = () => {
     slug: "",
   });
 
-  const [members, setMembers] = useState<Member[]>([]);
-  const [email, setEmail] = useState("");
-  const [role, setRole] = useState("membro");
+
   const [loading, setLoading] = useState(false);
 
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -58,7 +56,7 @@ const OrganizacoesPage = () => {
     setSuccessMsg("");
     try {
       const token = localStorage.getItem("token");
-      const response = await organizationsApi.getOrganizations(undefined, {
+      const response = await organizationsApi.getOrganizations({
         headers: token ? { Authorization: `Bearer ${token}` } : {},
       });
       setOrganizations(response.data || []);
@@ -68,37 +66,10 @@ const OrganizacoesPage = () => {
     setLoading(false);
   }
 
-  async function fetchMembers(org: Organization) {
-    setLoading(true);
-    setErrorMsg("");
-    setSuccessMsg("");
-    try {
-      const token = localStorage.getItem("token");
-      const data = await organizationsApi.getOrganizationsIdmembers(org.id, {
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
-      });
-      setMembers((data.data || []).map((m: any) => ({
-        id: m.id,
-        email: m.email,
-        role: m.role,
-      })));
-    } catch (err) {
-      setErrorMsg("Erro ao buscar membros da organização.");
-    }
-    setLoading(false);
-  }
+
 
   const handleSelectOrg = (org: Organization) => {
-    setSelectedOrg(org);
-    setForm({
-      name: org.name,
-      description: org.description ?? "",
-      password: "",
-      slug: org.slug,
-    });
-    fetchMembers(org);
-    setSuccessMsg("");
-    setErrorMsg("");
+    router.push(`/organization/${org.id}`);
   };
 
   const handleChange = (
@@ -158,7 +129,6 @@ const OrganizacoesPage = () => {
         await fetchUserOrganizations();
         setSelectedOrg(null);
         setForm({ name: "", description: "", password: "", slug: "" });
-        setMembers([]);
         setSuccessMsg("Organização deletada com sucesso!");
       } catch (err) {
         setErrorMsg("Erro ao deletar organização. Tente novamente.");
@@ -167,75 +137,11 @@ const OrganizacoesPage = () => {
     }
   };
 
-  const handleAddUser = async () => {
-    if (!selectedOrg) return;
-    setLoading(true);
-    setErrorMsg("");
-    setSuccessMsg("");
-    try {
-      if (!email) {
-        setErrorMsg("Informe o e-mail do usuário para adicionar.");
-        setLoading(false);
-        return;
-      }
-      // Buscar userId pelo email
-      const userData = await adminService.getUserByIdentifier(email.trim());
-      const userId = userData?.id;
-      if (!userId) {
-        setErrorMsg("Usuário não encontrado para o e-mail informado.");
-        setLoading(false);
-        return;
-      }
-      const token = localStorage.getItem("token");
-      await organizationsApi.postOrganizationsIdmembers(selectedOrg.id, { userId, role }, {
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
-      });
-      await fetchMembers(selectedOrg);
-      setSuccessMsg("Membro adicionado com sucesso!");
-      setEmail("");
-    } catch (err) {
-      setErrorMsg(
-        "Erro ao adicionar membro. Verifique o e-mail e tente novamente."
-      );
-    }
-    setLoading(false);
-  };
 
-  const handleUpdateRole = async (userId: string, newRole: string) => {
-    if (!selectedOrg) return;
-    setLoading(true);
-    setErrorMsg("");
-    setSuccessMsg("");
-    try {
-      const token = localStorage.getItem("token");
-      await organizationsApi.patchOrganizationsIdmembersUserId(selectedOrg.id, userId, { role: newRole }, {
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
-      });
-      await fetchMembers(selectedOrg);
-      setSuccessMsg("Função do membro atualizada com sucesso!");
-    } catch (err) {
-      setErrorMsg("Erro ao atualizar a função do membro.");
-    }
-    setLoading(false);
-  };
 
-  const handleDeleteUser = async (userId: string) => {
-    if (!selectedOrg) return;
-    setLoading(true);
-    setErrorMsg("");
-    setSuccessMsg("");
-    try {
-      const token = localStorage.getItem("token");
-      await organizationsApi.deleteOrganizationsIdmembersUserId(selectedOrg.id, userId, {
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
-      });
-      await fetchMembers(selectedOrg);
-      setSuccessMsg("Membro removido com sucesso!");
-    } catch (err) {
-      setErrorMsg("Erro ao remover membro da organização.");
-    }
-    setLoading(false);
-  };
+
+
+
 
   return (
     <>
@@ -252,7 +158,7 @@ const OrganizacoesPage = () => {
               </div>
               <div className="flex flex-row gap-2">
                 <Button
-                  variant="secondary"
+                  variant="primary"
                   palette="default"
                   size="md"
                   iconBefore={<RefreshCcw className={loading ? "animate-spin" : ""} />}

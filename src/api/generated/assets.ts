@@ -78,24 +78,17 @@ const endpoints = makeApi([
                         id: z.string().uuid(),
                         assetInstanceId: z.string().uuid(),
                         attributeId: z.string().uuid(),
-                        value: z
-                          .union([
-                            z.string(),
-                            z.number(),
-                            z.boolean(),
-                            z.string(),
-                            z.array(z.string()),
-                            z.unknown(),
-                          ])
-                          .nullable(),
+                        value: z.string(),
                         createdAt: z
                           .string()
                           .datetime({ offset: true })
-                          .optional(),
+                          .optional()
+                          .default({}),
                         updatedAt: z
                           .string()
                           .datetime({ offset: true })
-                          .optional(),
+                          .optional()
+                          .default({}),
                       })
                     )
                     .optional()
@@ -252,24 +245,17 @@ const endpoints = makeApi([
                     id: z.string().uuid(),
                     assetInstanceId: z.string().uuid(),
                     attributeId: z.string().uuid(),
-                    value: z
-                      .union([
-                        z.string(),
-                        z.number(),
-                        z.boolean(),
-                        z.string(),
-                        z.array(z.string()),
-                        z.unknown(),
-                      ])
-                      .nullable(),
+                    value: z.string(),
                     createdAt: z
                       .string()
                       .datetime({ offset: true })
-                      .optional(),
+                      .optional()
+                      .default({}),
                     updatedAt: z
                       .string()
                       .datetime({ offset: true })
                       .optional()
+                      .default({}),
                   })
                 )
                 .optional()
@@ -444,6 +430,86 @@ const endpoints = makeApi([
       },
     ],
   },
+  {
+    method: "patch",
+    path: "/assets/:id/trash-bin",
+    alias: "patchAssetsIdtrashBin",
+    description: `Set the trashBin field for an asset`,
+    requestFormat: "json",
+    parameters: [
+      {
+        name: "body",
+        type: "Body",
+        schema: z.object({ trashBin: z.boolean() }),
+      },
+      {
+        name: "id",
+        type: "Path",
+        schema: z.string().uuid(),
+      },
+    ],
+    response: z.object({
+      message: z.string().optional().default("Asset trashBin set"),
+      data: z.object({
+        id: z.string().uuid(),
+        type: z.enum(["unique", "replicable"]),
+        quantity: z.number().int().nullable(),
+        organizationId: z.string().uuid().nullish(),
+        creatorUserId: z.string().uuid(),
+        name: z.string(),
+        description: z.string().nullish(),
+        trashBin: z.boolean().optional().default(false),
+        createdAt: z.string().datetime({ offset: true }),
+        updatedAt: z.string().datetime({ offset: true }),
+      }),
+    }),
+    errors: [
+      {
+        status: 400,
+        description: `Bad Request`,
+        schema: z.object({
+          error: z.string().optional().default("Bad Request"),
+          message: z.string(),
+        }),
+      },
+      {
+        status: 401,
+        description: `Unauthorized`,
+        schema: z.object({
+          error: z.string().optional().default("Unauthorized"),
+          message: z.string(),
+        }),
+      },
+      {
+        status: 403,
+        description: `Forbidden`,
+        schema: z.object({
+          error: z.string().optional().default("Forbidden"),
+          message: z.string(),
+        }),
+      },
+      {
+        status: 404,
+        description: `Not Found`,
+        schema: z.object({
+          error: z.string().optional().default("Not Found"),
+          message: z.string(),
+        }),
+      },
+      {
+        status: 500,
+        description: `Internal Server Error`,
+        schema: z.object({
+          error: z.string().optional().default("Internal Server Error"),
+          message: z.string(),
+        }),
+      },
+    ],
+  },
 ]);
 
 export const AssetsApi = new Zodios(endpoints);
+
+export function createApiClient(baseUrl: string, options?: ZodiosOptions) {
+  return new Zodios(baseUrl, endpoints, options);
+}

@@ -13,8 +13,8 @@ interface HeaderProps {
 export default function Header({ activeTab = "home" }: HeaderProps) {
     return (
         <>
-           <div className="h-4"></div>
-            <header className="flex flex-col items-center bg-stuff-white rounded-2xl shadow-[8px_8px_0_0_rgba(0,0,0,0.1)] border-2 border-stuff-light mb-8 mx-4 px-4 py-3">
+            <div className="h-4"></div>
+            <header className="flex flex-col w-full items-center bg-stuff-white rounded-2xl shadow-[8px_8px_0_0_rgba(0,0,0,0.1)] border-2 border-stuff-light mb-4 mx-4 px-4 py-3">
                 <div className="flex flex-row items-center justify-between w-full py-2 pb-6">
                         <img src="/logo-stuff-orange.svg" alt="Stuff logo" className="h-12" />
                     <UserDropdown />

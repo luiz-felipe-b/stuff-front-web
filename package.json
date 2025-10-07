@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "generate:api-types": "openapi-zod-client https://stuff-back.fly.dev/docs/json --group-strategy tag-file -o src/api/generated"
+    "generate:api-types": "openapi-zod-client https://stuff-back.fly.dev/docs/json --group-strategy tag-file -o src/api/generated",
+    "generate:api-types:local": "openapi-zod-client http://localhost:4000/docs/json --group-strategy tag-file -o src/api/generated"
   },
   "dependencies": {
     "@headlessui/react": "^2.2.9",

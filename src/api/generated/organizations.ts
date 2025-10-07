@@ -693,6 +693,212 @@ const endpoints = makeApi([
       },
     ],
   },
+  {
+    method: "patch",
+    path: "/organizations/:id/activate",
+    alias: "patchOrganizationsIdactivate",
+    description: `Activate organization`,
+    requestFormat: "json",
+    parameters: [
+      {
+        name: "id",
+        type: "Path",
+        schema: z.string().uuid(),
+      },
+    ],
+    response: z.object({
+      message: z.string().optional().default("Organization activated"),
+      data: z.object({
+        id: z.string(),
+        name: z.string(),
+        slug: z.string(),
+        description: z.string().nullish(),
+        active: z.boolean().optional().default(true),
+        createdAt: z.string().datetime({ offset: true }),
+        updatedAt: z.string().datetime({ offset: true }),
+      }),
+    }),
+    errors: [
+      {
+        status: 400,
+        description: `Bad Request`,
+        schema: z.object({
+          error: z.string().optional().default("Bad Request"),
+          message: z.string(),
+        }),
+      },
+      {
+        status: 401,
+        description: `Unauthorized`,
+        schema: z.object({
+          error: z.string().optional().default("Unauthorized"),
+          message: z.string(),
+        }),
+      },
+      {
+        status: 403,
+        description: `Forbidden`,
+        schema: z.object({
+          error: z.string().optional().default("Forbidden"),
+          message: z.string(),
+        }),
+      },
+      {
+        status: 404,
+        description: `Not Found`,
+        schema: z.object({
+          error: z.string().optional().default("Not Found"),
+          message: z.string(),
+        }),
+      },
+      {
+        status: 500,
+        description: `Internal Server Error`,
+        schema: z.object({
+          error: z.string().optional().default("Internal Server Error"),
+          message: z.string(),
+        }),
+      },
+    ],
+  },
+  {
+    method: "patch",
+    path: "/organizations/:id/deactivate",
+    alias: "patchOrganizationsIddeactivate",
+    description: `Deactivate organization`,
+    requestFormat: "json",
+    parameters: [
+      {
+        name: "id",
+        type: "Path",
+        schema: z.string().uuid(),
+      },
+    ],
+    response: z.object({
+      message: z.string().optional().default("Organization deactivated"),
+      data: z.object({
+        id: z.string(),
+        name: z.string(),
+        slug: z.string(),
+        description: z.string().nullish(),
+        active: z.boolean().optional().default(true),
+        createdAt: z.string().datetime({ offset: true }),
+        updatedAt: z.string().datetime({ offset: true }),
+      }),
+    }),
+    errors: [
+      {
+        status: 400,
+        description: `Bad Request`,
+        schema: z.object({
+          error: z.string().optional().default("Bad Request"),
+          message: z.string(),
+        }),
+      },
+      {
+        status: 401,
+        description: `Unauthorized`,
+        schema: z.object({
+          error: z.string().optional().default("Unauthorized"),
+          message: z.string(),
+        }),
+      },
+      {
+        status: 403,
+        description: `Forbidden`,
+        schema: z.object({
+          error: z.string().optional().default("Forbidden"),
+          message: z.string(),
+        }),
+      },
+      {
+        status: 404,
+        description: `Not Found`,
+        schema: z.object({
+          error: z.string().optional().default("Not Found"),
+          message: z.string(),
+        }),
+      },
+      {
+        status: 500,
+        description: `Internal Server Error`,
+        schema: z.object({
+          error: z.string().optional().default("Internal Server Error"),
+          message: z.string(),
+        }),
+      },
+    ],
+  },
+  {
+    method: "get",
+    path: "/organizations/users/:userId/organizations",
+    alias: "getOrganizationsusersUserIdorganizations",
+    description: `Get all organizations a user belongs to`,
+    requestFormat: "json",
+    parameters: [
+      {
+        name: "userId",
+        type: "Path",
+        schema: z.string().min(1),
+      },
+    ],
+    response: z.object({
+      message: z.string().optional().default("User organizations found"),
+      data: z.array(
+        z.object({
+          id: z.string(),
+          name: z.string(),
+          slug: z.string(),
+          description: z.string().nullish(),
+          active: z.boolean().optional().default(true),
+          createdAt: z.string().datetime({ offset: true }),
+          updatedAt: z.string().datetime({ offset: true }),
+        })
+      ),
+    }),
+    errors: [
+      {
+        status: 400,
+        description: `Bad Request`,
+        schema: z.object({
+          error: z.string().optional().default("Bad Request"),
+          message: z.string(),
+        }),
+      },
+      {
+        status: 401,
+        description: `Unauthorized`,
+        schema: z.object({
+          error: z.string().optional().default("Unauthorized"),
+          message: z.string(),
+        }),
+      },
+      {
+        status: 403,
+        description: `Forbidden`,
+        schema: z.object({
+          error: z.string().optional().default("Forbidden"),
+          message: z.string(),
+        }),
+      },
+      {
+        status: 404,
+        description: `Not Found`,
+        schema: z.object({
+          error: z.string().optional().default("Not Found"),
+          message: z.string(),
+        }),
+      },
+      {
+        status: 500,
+        description: `Internal Server Error`,
+        schema: z.object({
+          error: z.string().optional().default("Internal Server Error"),
+          message: z.string(),
+        }),
+      },
+    ],
+  },
 ]);
 
 export const OrganizationsApi = new Zodios(endpoints);

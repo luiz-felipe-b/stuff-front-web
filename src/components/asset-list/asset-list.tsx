@@ -1,9 +1,13 @@
 "use client";
 
 import React, { useState, useMemo } from "react";
+import Loader from "@/components/Loader/Loader";
+import Button from "../Button/Button";
+import AddAssetModal from "./AddAssetModal";
+import AssetDetailsModal from "./AssetDetailsModal";
 import { Trash2, Edit3, Package, Calendar, User, Eye, MoreVertical, Search, Filter, X, Hash, Weight, CalendarDays, Plus, Type, Ruler } from "lucide-react";
 // import "./asset-list.css";
-import { AssetService } from "@/services/assets_service";
+import { assetsApi } from "@/services/api";
 
 interface AttributeValue {
   id: string;
@@ -41,13 +45,15 @@ interface Asset {
   attributes?: Attribute[];
 }
 
+type TimeMetricValue = { scale: string; unit: string };
 interface NewAttribute {
   name: string;
   description: string;
-  type: 'number' | 'text' | 'date' | 'metric';
+  type: 'number' | 'text' | 'date' | 'metric' | 'file' | 'timemetric' | 'boolean' | 'select' | 'multiselection' | 'rfid';
   dimension?: string;
   unit?: string;
-  value: string;
+  value: string | File | string[] | TimeMetricValue;
+  options?: string[];
 }
 
 interface NewAsset {
@@ -62,12 +68,9 @@ interface AssetListProps {
   onEdit?: (asset: Asset) => void;
   onDelete?: (asset: Asset) => void;
   onView?: (asset: Asset) => void;
-  onAddAttribute: (
-    assetId: string,
-    attribute: { name: string; description: string; type: string; organizationId: string; },
-    value: { value: string | number | Date; metricUnit?: string; attributeType?: string; }
-  ) => Promise<void>;
   onAddAsset?: (asset: NewAsset) => Promise<void>;
+  onAddAttribute?: () => Promise<void>;
+  onAssetsChanged?: () => void;
   loading?: boolean;
   emptyMessage?: string;
   showActions?: boolean;
@@ -81,32 +84,30 @@ export default function AssetList({
   assets,
   onEdit,
   onDelete,
-  onAddAttribute,
   onAddAsset,
+  onAddAttribute,
+  onAssetsChanged,
   loading = false,
   emptyMessage = "Nenhum ativo encontrado",
   showCreatedDate = true,
   showDescription = true,
 }: AssetListProps) {
+  // Called after attribute is added in modal: refetch all assets and the selected asset
+  const handleAttributeSaved = async () => {
+    if (onAddAttribute) await onAddAttribute(); // parent will refetch all assets
+    if (selectedAsset) await refetchAsset(selectedAsset.id); // update modal asset
+  };
   const [searchTerm, setSearchTerm] = useState("");
   const [filter, setFilter] = useState<FilterType>('all');
   const [expandedAsset, setExpandedAsset] = useState<string | null>(null);
   const [selectedAsset, setSelectedAsset] = useState<Asset | null>(null);
-  const [showAddAttribute, setShowAddAttribute] = useState(false);
+  const [attributeLoading, setAttributeLoading] = useState(false);
+  const [assetLoading, setAssetLoading] = useState(false);
   const [showAddAsset, setShowAddAsset] = useState(false);
-  const [newAttribute, setNewAttribute] = useState<NewAttribute>({
-    name: '',
-    description: '',
-    type: 'text',
-    unit: '',
-    value: ''
-  });
   const [newAsset, setNewAsset] = useState<NewAsset>({
     name: '',
     description: ''
   });
-  const [attributeLoading, setAttributeLoading] = useState(false);
-  const [assetLoading, setAssetLoading] = useState(false);
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("pt-BR", {
@@ -118,55 +119,22 @@ export default function AssetList({
     });
   };
 
-  const formatValue = (value: any, type: string, dimension?: string, unit?: string) => {
-    switch (type) {
-      case 'date':
-        return new Date(value).toLocaleDateString("pt-BR");
-      case 'numeric':
-      case 'number':
-        return value.toString();
-      case 'metric':
-        return `${value}${unit ? ` ${unit}` : ''}${dimension ? ` (${dimension})` : ''}`;
-      default:
-        return value.toString();
-    }
-  };
-
-  const getAttributeIcon = (type: string) => {
-    switch (type) {
-      case 'number':
-        return <Hash size={16} />;
-      case 'metric':
-        return <Weight size={16} />;
-      case 'date':
-        return <CalendarDays size={16} />;
-      case 'text':
-        return <Type size={16} />;
-      default:
-        return <Package size={16} />;
-    }
-  };
 
   const openAssetModal = async (asset: Asset) => {
     setSelectedAsset(asset);
-    await refetchAsset(asset.id);
+    setAttributeLoading(true);
+    try {
+      await refetchAsset(asset.id);
+    } finally {
+      setAttributeLoading(false);
+    }
   };
 
   const closeAssetModal = () => {
     setSelectedAsset(null);
-    setShowAddAttribute(false);
-    resetNewAttribute();
   };
 
-  const resetNewAttribute = () => {
-    setNewAttribute({
-      name: '',
-      description: '',
-      type: 'text',
-      unit: '',
-      value: ''
-    });
-  };
+  // resetNewAttribute removed
 
   const resetNewAsset = () => {
     setNewAsset({
@@ -175,14 +143,7 @@ export default function AssetList({
     });
   };
 
-  const handleAddAttribute = () => {
-    setShowAddAttribute(true);
-  };
-
-  const handleCancelAddAttribute = () => {
-    setShowAddAttribute(false);
-    resetNewAttribute();
-  };
+  // handleAddAttribute and handleCancelAddAttribute removed
 
   const handleAddAsset = () => {
     setShowAddAsset(true);
@@ -206,6 +167,9 @@ export default function AssetList({
       await onAddAsset(newAsset);
       setShowAddAsset(false);
       resetNewAsset();
+      if (typeof onAssetsChanged === 'function') {
+        onAssetsChanged();
+      }
     } catch (error) {
       console.error('Erro ao criar ativo:', error);
       alert('Erro ao criar ativo. Tente novamente.');
@@ -223,83 +187,49 @@ export default function AssetList({
 
   const refetchAsset = async (assetId: string) => {
     if (!assetId) return;
-
-    console.log('Refetching asset:', assetId);
-    
     try {
-      const result = await AssetService.getAssetById(assetId);
-      const asset = result.data;
-      console.log('Refetched asset data:', asset);
-      console.log('Asset attributes:', asset?.attributes);
-
+      const assetResp = await assetsApi.getAssetsId({ params: { id: assetId } });
+      const asset = assetResp.data;
       if (!asset || !asset.id) {
         throw new Error('Invalid asset data received from API');
       }
-
-      const updatedAsset = {
+      const updatedAsset: Asset = {
         ...asset,
-        attributes: asset.attributes || []
+        description: typeof asset.description === 'string' ? asset.description : "",
+        templateId: ('templateId' in asset && typeof asset.templateId === 'string') ? asset.templateId : null,
+        organizationId: typeof asset.organizationId === 'string' ? asset.organizationId : null,
+        attributes: Array.isArray(asset.attributes)
+          ? asset.attributes.map(attr => ({
+              ...attr,
+              description: typeof attr.description === 'string' ? attr.description : "",
+              organizationId: typeof attr.organizationId === 'string' ? attr.organizationId : null,
+              unit: typeof attr.unit === 'string' ? attr.unit : undefined,
+              values: Array.isArray(attr.values)
+                ? attr.values.map(val => {
+                    const v = val as any;
+                    return {
+                      id: v.id || '',
+                      assetInstanceId: v.assetInstanceId || v.asset_id || '',
+                      attributeId: v.attributeId || v.attribute_id || '',
+                      value: v.value,
+                      createdAt: v.createdAt || v.created_at || '',
+                      updatedAt: v.updatedAt || v.updated_at || '',
+                    };
+                  })
+                : []
+            }))
+          : []
       };
-
       setSelectedAsset(updatedAsset);
-      console.log('Updated selected asset:', updatedAsset);
     } catch (error) {
       console.error('Erro ao recarregar ativo:', error);
       alert('Erro ao recarregar ativo. Tente novamente.');
     }
   };
 
-  const handleSaveAttribute = async () => {
-    if (!selectedAsset || !onAddAttribute) return;
+  // handleSaveAttribute removed; now handled in modal
 
-    if (!newAttribute.name.trim() || !newAttribute.value.trim()) {
-      alert('Nome e valor do atributo são obrigatórios');
-      return;
-    }
-
-    if (newAttribute.type === 'metric' && (!newAttribute.dimension?.trim() || !newAttribute.unit?.trim())) {
-      alert('Dimensão e unidade são obrigatórias para atributos métricos');
-      return;
-    }
-
-    if (newAttribute.type === 'date' && isNaN(Date.parse(newAttribute.value))) {
-      alert('Valor deve ser uma data válida para atributos do tipo data');
-      return;
-    }
-
-    setAttributeLoading(true);
-    try {
-      await onAddAttribute(selectedAsset.id, {
-        name: newAttribute.name,
-        description: newAttribute.description,
-        type: newAttribute.type,
-        organizationId: selectedAsset.organizationId || '',
-      }, {
-        value: newAttribute.type === 'number' ? parseInt(newAttribute.value) : newAttribute.value,
-        metricUnit: newAttribute.unit,
-        attributeType: newAttribute.type
-      });
-      setShowAddAttribute(false);
-      resetNewAttribute();
-
-      setTimeout(async () => {
-        await refetchAsset(selectedAsset.id);
-      }, 500);
-
-    } catch (error) {
-      console.error('Erro ao adicionar atributo:', error);
-      alert('Erro ao adicionar atributo. Tente novamente.');
-    } finally {
-      setAttributeLoading(false);
-    }
-  };
-
-  const handleAttributeChange = (field: keyof NewAttribute, value: string) => {
-    setNewAttribute(prev => ({
-      ...prev,
-      [field]: value
-    }));
-  };
+  // handleAttributeChange removed
 
   const filteredAssets = useMemo(() => {
     let filtered = assets;
@@ -326,50 +256,47 @@ export default function AssetList({
 
   if (loading) {
     return (
-      <div className="asset-list-loading">
-        <div className="loading-spinner"></div>
-        <p>Carregando ativos...</p>
+      <div className="flex flex-col items-center justify-center py-12">
+        <Loader label="Carregando ativos..." />
       </div>
     );
   }
 
+
   return (
     <>
-      <div className="asset-list">
-        <div className="asset-list-header">
-          <div className="asset-list-title">
-            <h3>Ativos ({assets.length})</h3>
+      <div className="w-full mx-auto">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
+          <div className="flex items-center gap-4">
+            <h3 className="text-xl font-bold text-stuff-dark">Ativos <span className="text-stuff-mid">({assets.length})</span></h3>
             {onAddAsset && (
-              <button className="add-asset-btn" onClick={handleAddAsset}>
-                <Plus size={16} />
+              <Button size="sm" palette="success" onClick={handleAddAsset} iconBefore={<Plus size={16} />}>
                 Novo Ativo
-              </button>
+              </Button>
             )}
           </div>
-
-          <div className="asset-controls">
-            <div className="search-container">
-              <Search size={16} className="search-icon" />
+          <div className="flex gap-2 w-full md:w-auto">
+            <div className="relative flex items-center w-full md:w-64">
+              <Search size={16} className="absolute left-3 text-stuff-mid" />
               <input
                 type="text"
                 placeholder="Buscar ativos..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="search-input"
+                className="pl-9 pr-10 py-2 rounded-lg border border-stuff-mid bg-white text-stuff-dark w-full focus:ring-2 focus:ring-stuff-primary outline-none"
               />
               {searchTerm && (
-                <button onClick={clearSearch} className="clear-search">
+                <button onClick={clearSearch} className="absolute right-2 text-stuff-mid hover:text-stuff-dark">
                   <X size={16} />
                 </button>
               )}
             </div>
-
-            <div className="filter-container">
-              <Filter size={16} className="filter-icon" />
+            <div className="flex items-center gap-2">
+              <Filter size={16} className="text-stuff-mid" />
               <select
                 value={filter}
                 onChange={(e) => setFilter(e.target.value as FilterType)}
-                className="filter-select"
+                className="rounded-lg border border-stuff-mid bg-white text-stuff-dark px-2 py-2 focus:ring-2 focus:ring-stuff-primary outline-none"
               >
                 <option value="all">Todos</option>
                 <option value="active">Ativos</option>
@@ -380,44 +307,39 @@ export default function AssetList({
         </div>
 
         {filteredAssets.length === 0 ? (
-          <div className="asset-list-empty">
-            <Package size={48} className="empty-icon" />
-            <h3>Nenhum ativo encontrado</h3>
-            <p>
+          <div className="flex flex-col items-center justify-center py-12 bg-white rounded-xl border border-stuff-mid shadow-sm">
+            <Package size={48} className="text-stuff-light mb-2" />
+            <h3 className="text-lg font-semibold mb-1">Nenhum ativo encontrado</h3>
+            <p className="text-stuff-mid mb-4">
               {searchTerm || filter !== 'all'
                 ? "Nenhum ativo corresponde aos critérios de busca."
-                : emptyMessage
-              }
+                : emptyMessage}
             </p>
             {onAddAsset && (
-              <button className="add-asset-btn-empty" onClick={handleAddAsset}>
-                <Plus size={16} />
-                Criar Primeiro Ativo
-              </button>
+              <Button size="sm" palette="success" onClick={handleAddAsset} iconBefore={<Plus size={16} />}>Criar Primeiro Ativo</Button>
             )}
           </div>
         ) : (
-          <div className="asset-vertical-list">
+          <div className="flex flex-col gap-4">
             {filteredAssets.map((asset) => (
-              <div key={asset.id} className={`asset-item ${asset.trashBin ? 'trash-item' : ''}`}>
-                <div className="asset-item-content" onClick={() => openAssetModal(asset)}>
-                  <div className="asset-icon">
-                    <Package size={20} />
+              <div key={asset.id} className={`flex flex-col bg-white border-2 border-b-4 border-black rounded-xl px-6 py-4 shadow-none hover:bg-stuff-light/80 transition cursor-pointer ${asset.trashBin ? 'opacity-60' : ''}`} onClick={() => openAssetModal(asset)}>
+                <div className="flex items-center gap-4">
+                  <div className="flex items-center justify-center w-10 h-10 rounded-full bg-stuff-light border border-stuff-mid">
+                    <Package size={20} className="text-stuff-mid" />
                   </div>
-
-                  <div className="asset-details">
-                    <h4 className="asset-name">{asset.name}</h4>
+                  <div className="flex-1">
+                    <h4 className="text-lg font-bold text-stuff-dark mb-1">{asset.name}</h4>
                     {showDescription && asset.description && (
-                      <p className="asset-description">{asset.description}</p>
+                      <p className="text-stuff-mid text-sm mb-1">{asset.description}</p>
                     )}
                     {showCreatedDate && (
-                      <div className="asset-meta">
-                        <div className="meta-item">
+                      <div className="flex flex-wrap gap-4 text-xs text-stuff-mid">
+                        <div className="flex items-center gap-1">
                           <Calendar size={12} />
                           <span>Criado em {formatDate(asset.createdAt)}</span>
                         </div>
                         {asset.updatedAt !== asset.createdAt && (
-                          <div className="meta-item">
+                          <div className="flex items-center gap-1">
                             <Calendar size={12} />
                             <span>Atualizado em {formatDate(asset.updatedAt)}</span>
                           </div>
@@ -425,12 +347,10 @@ export default function AssetList({
                       </div>
                     )}
                   </div>
-
                   {asset.trashBin && (
-                    <div className="asset-status-badge">
-                      <Trash2 size={12} />
-                      <span>Lixeira</span>
-                    </div>
+                    <span className="inline-flex items-center gap-1 px-2 py-1 rounded bg-stuff-light text-stuff-mid text-xs font-semibold border border-stuff-mid">
+                      <Trash2 size={12} /> Lixeira
+                    </span>
                   )}
                 </div>
               </div>
@@ -440,267 +360,25 @@ export default function AssetList({
       </div>
 
       {/* Add Asset Modal */}
-      {showAddAsset && (
-        <div className="asset-modal-overlay" onClick={handleCancelAddAsset}>
-          <div className="asset-modal-content" onClick={(e) => e.stopPropagation()}>
-            <div className="asset-modal-header">
-              <div className="asset-modal-title">
-                <div className="asset-modal-icon">
-                  <Plus size={24} />
-                </div>
-                <div>
-                  <h2>Novo Ativo</h2>
-                  <p className="asset-modal-subtitle">Criar um novo ativo para a organização</p>
-                </div>
-              </div>
-              <button className="asset-modal-close" onClick={handleCancelAddAsset}>
-                <X size={20} />
-              </button>
-            </div>
-
-            <div className="asset-modal-body">
-              <div className="add-asset-form">
-                <div className="form-group">
-                  <label>Nome do Ativo *</label>
-                  <input
-                    type="text"
-                    value={newAsset.name}
-                    onChange={(e) => handleAssetChange('name', e.target.value)}
-                    placeholder="Nome do ativo"
-                    autoFocus
-                  />
-                </div>
-
-                <div className="form-group">
-                  <label>Descrição</label>
-                  <textarea
-                    value={newAsset.description}
-                    onChange={(e) => handleAssetChange('description', e.target.value)}
-                    placeholder="Descrição do ativo (opcional)"
-                    rows={3}
-                  />
-                </div>
-              </div>
-            </div>
-
-            <div className="asset-modal-footer">
-              <button 
-                className="modal-btn cancel-btn" 
-                onClick={handleCancelAddAsset}
-                disabled={assetLoading}
-              >
-                Cancelar
-              </button>
-              <button 
-                className="modal-btn save-btn" 
-                onClick={handleSaveAsset}
-                disabled={assetLoading || !newAsset.name.trim()}
-              >
-                {assetLoading ? 'Criando...' : 'Criar Ativo'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <AddAssetModal
+        open={showAddAsset}
+        loading={assetLoading}
+        newAsset={newAsset}
+        onChange={handleAssetChange}
+        onCancel={handleCancelAddAsset}
+        onSave={handleSaveAsset}
+  />
 
       {/* Asset Detail Modal */}
-      {selectedAsset && (
-        <div className="asset-modal-overlay" onClick={closeAssetModal}>
-          <div className="asset-modal-content" onClick={(e) => e.stopPropagation()}>
-            <div className="asset-modal-header">
-              <div className="asset-modal-title">
-                <div className="asset-modal-icon">
-                  <Package size={24} />
-                </div>
-                <div>
-                  <h2>{selectedAsset.name}</h2>
-                  <p className="asset-modal-subtitle">{selectedAsset.description}</p>
-                </div>
-              </div>
-              <button className="asset-modal-close" onClick={closeAssetModal}>
-                <X size={20} />
-              </button>
-            </div>
-
-            <div className="asset-modal-body">
-              {/* Basic Information */}
-              <div className="asset-info-section">
-                <h3>Informações Básicas</h3>
-                <div className="asset-info-grid">
-                  <div className="info-item">
-                    <label>ID</label>
-                    <span>{selectedAsset.id}</span>
-                  </div>
-                  <div className="info-item">
-                    <label>Criado em</label>
-                    <span>{formatDate(selectedAsset.createdAt)}</span>
-                  </div>
-                  <div className="info-item">
-                    <label>Atualizado em</label>
-                    <span>{formatDate(selectedAsset.updatedAt)}</span>
-                  </div>
-                  <div className="info-item">
-                    <label>Status</label>
-                    <span className={`status-badge ${selectedAsset.trashBin ? 'trash' : 'active'}`}>
-                      {selectedAsset.trashBin ? 'Lixeira' : 'Ativo'}
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Attributes Section */}
-              <div className="asset-attributes-section">
-                <div className="attributes-header">
-                  <h3>Atributos</h3>
-                  {!showAddAttribute && (
-                    <button className="add-attribute-btn" onClick={handleAddAttribute}>
-                      <Plus size={16} />
-                      Adicionar Atributo
-                    </button>
-                  )}
-                </div>
-
-                {/* Add Attribute Form */}
-                {showAddAttribute && (
-                  <div className="add-attribute-form">
-                    <h4>Novo Atributo</h4>
-                    <div className="attribute-form-grid">
-                      <div className="form-group">
-                        <label>Nome *</label>
-                        <input
-                          type="text"
-                          value={newAttribute.name}
-                          onChange={(e) => handleAttributeChange('name', e.target.value)}
-                          placeholder="Nome do atributo"
-                        />
-                      </div>
-
-                      <div className="form-group">
-                        <label>Tipo *</label>
-                        <select
-                          value={newAttribute.type}
-                          onChange={(e) => handleAttributeChange('type', e.target.value)}
-                        >
-                          <option value="text">Texto</option>
-                          <option value="number">Numérico</option>
-                          <option value="date">Data</option>
-                          <option value="metric">Métrica</option>
-                        </select>
-                      </div>
-
-                      <div className="form-group full-width">
-                        <label>Descrição</label>
-                        <input
-                          type="text"
-                          value={newAttribute.description}
-                          onChange={(e) => handleAttributeChange('description', e.target.value)}
-                          placeholder="Descrição do atributo"
-                        />
-                      </div>
-
-                      {newAttribute.type === 'metric' && (
-                        <div className="form-group">
-                          <label>Unidade *</label>
-                          <input
-                            type="text"
-                            value={newAttribute.unit}
-                            onChange={(e) => handleAttributeChange('unit', e.target.value)}
-                            placeholder="Ex: cm, kg, L"
-                          />
-                        </div>
-                      )}
-
-                      <div className="form-group full-width">
-                        <label>Valor *</label>
-                        <input
-                          type={newAttribute.type === 'number' || newAttribute.type === 'metric' ? 'number' :
-                            newAttribute.type === 'date' ? 'date' : 'text'}
-                          value={newAttribute.value}
-                          onChange={(e) => handleAttributeChange('value', e.target.value)}
-                          placeholder="Valor do atributo"
-                        />
-                      </div>
-                    </div>
-
-                    <div className="attribute-form-actions">
-                      <button
-                        className="cancel-btn"
-                        onClick={handleCancelAddAttribute}
-                        disabled={attributeLoading}
-                      >
-                        Cancelar
-                      </button>
-                      <button
-                        className="save-btn"
-                        onClick={handleSaveAttribute}
-                        disabled={attributeLoading}
-                      >
-                        {attributeLoading ? 'Salvando...' : 'Salvar'}
-                      </button>
-                    </div>
-                  </div>
-                )}
-
-                {/* Existing Attributes */}
-                {selectedAsset.attributes && selectedAsset.attributes.length > 0 && (
-                  <div className="attributes-list">
-                    {selectedAsset.attributes.map((attribute) => {
-                      const attributeValue = attribute.values.find(
-                        val => val.assetInstanceId === selectedAsset.id && val.attributeId === attribute.id
-                      );
-
-                      return (
-                        <div key={attribute.id} className="attribute-item">
-                          <div className="attribute-header">
-                            <div className="attribute-icon">
-                              {getAttributeIcon(attribute.type)}
-                            </div>
-                            <div className="attribute-info">
-                              <h4>{attribute.name}</h4>
-                              <p>{attribute.description}</p>
-                            </div>
-                            <span className="attribute-type">{attribute.type}</span>
-                          </div>
-                          {attributeValue && (
-                            <div className="attribute-value">
-                              <strong>Valor:</strong> {formatValue(attributeValue.value, attribute.type, attribute.unit)}
-                            </div>
-                          )}
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
-
-                {(!selectedAsset.attributes || selectedAsset.attributes.length === 0) && !showAddAttribute && (
-                  <div className="no-attributes">
-                    <Package size={48} className="no-attributes-icon" />
-                    <p>Este ativo não possui atributos definidos.</p>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            <div className="asset-modal-footer">
-              {onEdit && (
-                <button className="modal-btn edit-btn" onClick={() => onEdit(selectedAsset)}>
-                  <Edit3 size={16} />
-                  Editar
-                </button>
-              )}
-              {onDelete && (
-                <button className="modal-btn delete-btn" onClick={() => onDelete(selectedAsset)}>
-                  <Trash2 size={16} />
-                  Excluir
-                </button>
-              )}
-              <button className="modal-btn close-btn" onClick={closeAssetModal}>
-                Fechar
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <AssetDetailsModal
+        open={!!selectedAsset}
+        asset={selectedAsset}
+        loading={attributeLoading}
+        onClose={closeAssetModal}
+        onEdit={onEdit}
+        onDelete={onDelete}
+        onAttributeSaved={handleAttributeSaved}
+      />
     </>
   );
 }

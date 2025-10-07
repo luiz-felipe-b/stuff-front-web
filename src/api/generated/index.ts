@@ -3,3 +3,5 @@ export { UserApi } from "./user";
 export { OrganizationsApi } from "./organizations";
 export { AssetsApi } from "./assets";
 export { AttributesApi } from "./attributes";
+export { AiApi } from "./ai";
+export { Ai_functionalitiesApi } from "./ai_functionalities";

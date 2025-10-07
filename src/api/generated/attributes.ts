@@ -103,16 +103,7 @@ const endpoints = makeApi([
                 id: z.string().uuid(),
                 assetInstanceId: z.string().uuid(),
                 attributeId: z.string().uuid(),
-                value: z
-                  .union([
-                    z.string(),
-                    z.number(),
-                    z.boolean(),
-                    z.string(),
-                    z.array(z.string()),
-                    z.unknown(),
-                  ])
-                  .nullable(),
+                value: z.string(),
                 createdAt: z
                   .string()
                   .datetime({ offset: true })
@@ -174,28 +165,26 @@ const endpoints = makeApi([
     response: z.object({
       message: z.string().optional().default("Attribute created successfully"),
       data: z.object({
-        attribute: z.object({
-          id: z.string().uuid(),
-          organizationId: z.string().uuid().nullish(),
-          name: z.string().min(1),
-          description: z.string().nullish(),
-          type: z.enum([
-            "text",
-            "number",
-            "boolean",
-            "date",
-            "metric",
-            "select",
-            "multiselection",
-            "timemetric",
-            "file",
-            "rfid",
-          ]),
-          unit: z.string().nullish(),
-          timeUnit: z.string().nullish(),
-          options: z.string().nullish(),
-          required: z.boolean().optional().default(false),
-        }),
+        id: z.string().uuid(),
+        organizationId: z.string().uuid().nullish(),
+        name: z.string().min(1),
+        description: z.string().nullish(),
+        type: z.enum([
+          "text",
+          "number",
+          "boolean",
+          "date",
+          "metric",
+          "select",
+          "multiselection",
+          "timemetric",
+          "file",
+          "rfid",
+        ]),
+        unit: z.string().nullish(),
+        timeUnit: z.string().nullish(),
+        options: z.string().nullish(),
+        required: z.boolean().optional().default(false),
       }),
     }),
     errors: [
@@ -271,16 +260,7 @@ const endpoints = makeApi([
               id: z.string().uuid(),
               assetInstanceId: z.string().uuid(),
               attributeId: z.string().uuid(),
-              value: z
-                .union([
-                  z.string(),
-                  z.number(),
-                  z.boolean(),
-                  z.string(),
-                  z.array(z.string()),
-                  z.unknown(),
-                ])
-                .nullable(),
+              value: z.string(),
               createdAt: z
                 .string()
                 .datetime({ offset: true })

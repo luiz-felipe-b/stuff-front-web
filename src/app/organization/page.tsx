@@ -5,10 +5,14 @@ import { organizationsApi } from "@/services/api";
 import { adminService } from "../../services/admin_service"; // Para buscar userId pelo email
 // import "../../styles/organizacao.css";
 import Header from "@/components/header/header";
-import { Plus, RefreshCcw, Trash, X } from "lucide-react";
+import { Plus, RefreshCcw, Trash } from "lucide-react";
+import DeleteOrganizationModal from "@/components/OrganizationList/DeleteOrganizationModal";
+import CreateOrganizationModal from "@/components/OrganizationList/CreateOrganizationModal";
+import Loader from "@/components/Loader/Loader";
 import { ListItem } from "@/components/list";
 import Button from "@/components/Button/Button";
 import Link from "next/link";
+import { useUser } from "@/context/UserContext";
 
 interface Organization {
   id: string;
@@ -33,10 +37,12 @@ const OrganizacoesPage = () => {
     slug: "",
   });
 
+  const { user, setUser } = useUser();
 
   const [loading, setLoading] = useState(false);
 
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   const [successMsg, setSuccessMsg] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
@@ -56,7 +62,7 @@ const OrganizacoesPage = () => {
     setSuccessMsg("");
     try {
       const token = localStorage.getItem("token");
-      const response = await organizationsApi.getOrganizations({
+      const response = await organizationsApi.getOrganizationsusersUserIdorganizations({  params: { userId: user ? user.id : "" },
         headers: token ? { Authorization: `Bearer ${token}` } : {},
       });
       setOrganizations(response.data || []);
@@ -123,9 +129,7 @@ const OrganizacoesPage = () => {
       setSuccessMsg("");
       try {
         const token = localStorage.getItem("token");
-        await organizationsApi.deleteOrganizationsId(selectedOrg.id, {
-          headers: token ? { Authorization: `Bearer ${token}` } : {},
-        });
+        await organizationsApi.patchOrganizationsIddeactivate(undefined, { params: { id: selectedOrg.id }, headers: token ? { Authorization: `Bearer ${token}` } : {} });
         await fetchUserOrganizations();
         setSelectedOrg(null);
         setForm({ name: "", description: "", password: "", slug: "" });
@@ -146,11 +150,11 @@ const OrganizacoesPage = () => {
   return (
     <>
       <div className="bg-[url('/pattern_faded.png')] bg-repeat bg-[length:98px_98px]">
-        <Header activeTab="organization" />
         <main className="min-h-screen flex flex-col items-center justify-start px-4">
-          <section className="w-full bg-stuff-white rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.08)] flex flex-col items-center py-10 px-6 md:px-16">
-            {successMsg && <div className="success-message mb-4">{successMsg}</div>}
-            {errorMsg && <div className="error-message mb-4">{errorMsg}</div>}
+          <Header activeTab="organization" />
+          <section className="w-full bg-stuff-white rounded-2xl shadow-[8px_8px_0_0_rgba(0,0,0,0.1)] flex flex-col items-center py-10 px-6 md:px-16">
+            {/* {successMsg && <div className="success-message mb-4">{successMsg}</div>}
+            {errorMsg && <div className="error-message mb-4">{errorMsg}</div>} */}
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2 mb-6 w-full">
               <div>
                 <h1 className="text-3xl font-bold text-stuff-mid mb-1">Minhas Organizações</h1>
@@ -178,91 +182,62 @@ const OrganizacoesPage = () => {
                 />
               </div>
             </div>
-            <div className="grid grid-cols-1 gap-4 w-full">
-              {organizations.length === 0 && (
+            <div className="grid grid-cols-1 gap-4 w-full min-h-[180px]">
+              {loading ? (
+                <Loader label="Carregando organizações..." />
+              ) : organizations.length === 0 ? (
                 <div className="text-center text-stuff-gray-100 py-8">Nenhuma organização encontrada.</div>
+              ) : (
+                organizations.map((org) => (
+                  <ListItem
+                    key={org.id}
+                    onClick={() => handleSelectOrg(org)}
+                    rightContent={
+                      <Button
+                        variant="primary"
+                        palette="danger"
+                        size="sm"
+                        iconBefore={<Trash />}
+                        className="ml-2"
+                        title="Deletar organização"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedOrg(org);
+                          setShowDeleteModal(true);
+                        }}
+                      />
+                    }
+                  >
+                    <span className="font-semibold text-lg text-stuff-black truncate max-w-[200px]">{org.name}</span>
+                    <span className="text-stuff-dark truncate max-w-[300px]">{org.description}</span>
+                  </ListItem>
+                ))
               )}
-              {organizations.map((org) => (
-                <ListItem
-                  key={org.id}
-                  onClick={() => handleSelectOrg(org)}
-                  rightContent={
-                    <Button
-                      variant="secondary"
-                      palette="danger"
-                      size="sm"
-                      iconBefore={<Trash />}
-                      className="ml-2"
-                      title="Deletar organização"
-                      onClick={async (e) => {
-                        e.stopPropagation();
-                        setSelectedOrg(org);
-                        await handleDelete();
-                      }}
-                    />
-                  }
-                >
-                  <span className="font-semibold text-lg text-stuff-black truncate max-w-[200px]">{org.name}</span>
-                  <span className="text-stuff-dark truncate max-w-[300px]">{org.description}</span>
-                </ListItem>
-              ))}
+
+              <DeleteOrganizationModal
+                open={showDeleteModal && !!selectedOrg}
+                orgName={selectedOrg?.name || ''}
+                loading={loading}
+                onCancel={() => setShowDeleteModal(false)}
+                onConfirm={async () => {
+                  await handleDelete();
+                  setShowDeleteModal(false);
+                }}
+              />
             </div>
           </section>
         </main>
       </div>
 
 
-      {/* Modal flutuante para criar organização */}
-      {showCreateModal && (
-        <div className="modal-overlay" onClick={handleCloseModal}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
-              <h1>Nova Organização</h1>
-              <a className="close-button" onClick={handleCloseModal}>
-                <X />
-              </a>
-            </div>
-            <div className="modal-body">
-              <input
-                name="name"
-                placeholder="Nome"
-                onChange={handleChange}
-                value={form.name}
-              />
-              <input
-                name="slug"
-                placeholder="Slug"
-                onChange={handleChange}
-                value={form.slug}
-              />
-              <textarea
-                name="description"
-                placeholder="Descrição"
-                onChange={handleChange}
-                value={form.description}
-              />
-              {/* <input
-                name="password"
-                type="password"
-                placeholder="Senha"
-                onChange={handleChange}
-                value={form.password}
-              /> */}
-            </div>
-            <div className="modal-footer">
-              <button onClick={handleCloseModal} className="danger">
-                Cancelar
-              </button>
-              <button
-                onClick={handleSubmit}
-                disabled={loading}
-              >
-                {loading ? "Criando..." : "Criar Organização"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <CreateOrganizationModal
+        open={showCreateModal}
+        loading={loading}
+        form={form}
+        onChange={handleChange}
+        onCancel={handleCloseModal}
+        onSubmit={handleSubmit}
+      />
 
       {/* <div className="container">
         {!selectedOrg && (

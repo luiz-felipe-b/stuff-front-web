@@ -28,27 +28,25 @@ export default function Breadcrumb({
     : items;
 
   return (
-    <nav className={`breadcrumb ${className}`} aria-label="Breadcrumb">
-      <ol className="breadcrumb-list">
+    <nav className={`w-full ${className}`} aria-label="Breadcrumb">
+      <ol className="flex flex-wrap items-center gap-2 text-sm text-stuff-mid">
         {breadcrumbItems.map((item, index) => {
           const isLast = index === breadcrumbItems.length - 1;
-          
           return (
-            <li key={index} className="breadcrumb-item">
+            <li key={index} className="flex items-center gap-2">
               {item.href && !isLast ? (
-                <Link href={item.href} className="breadcrumb-link">
-                  {item.icon && <span className="breadcrumb-icon">{item.icon}</span>}
-                  <span className="breadcrumb-text">{item.label}</span>
+                <Link href={item.href} className="flex items-center gap-1 hover:text-stuff-primary transition-colors">
+                  {item.icon && <span className="text-stuff-primary">{item.icon}</span>}
+                  <span className="font-medium">{item.label}</span>
                 </Link>
               ) : (
-                <span className={`breadcrumb-current ${isLast ? 'current' : ''}`}>
-                  {item.icon && <span className="breadcrumb-icon">{item.icon}</span>}
-                  <span className="breadcrumb-text">{item.label}</span>
+                <span className={`flex items-center gap-1 font-semibold text-stuff-dark ${isLast ? '' : ''}`}> 
+                  {item.icon && <span className="text-stuff-primary">{item.icon}</span>}
+                  <span>{item.label}</span>
                 </span>
               )}
-              
               {!isLast && (
-                <span className="breadcrumb-separator" aria-hidden="true">
+                <span className="mx-1 text-stuff-light" aria-hidden="true">
                   {separator}
                 </span>
               )}

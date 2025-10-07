@@ -1,16 +1,16 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { organizationsApi } from "@/services/api";
-import { adminService } from "../../../services/admin_service"; // Para buscar userId pelo email
+import { assetsApi, attributesApi, organizationsApi } from "@/services/api";
+import { OrganizationsApi } from "@/api/generated/organizations";
 // import "../../../styles/organizacao.css";
 import Header from "@/components/header/header";
 import { Mail, Package, Plus, Shield, ShieldCheck, Trash, UserPlus, Users, X } from "lucide-react";
 import Link from "next/link";
 import Breadcrumb from "@/components/breadcrumb/breadcrumb";
 import AssetList from "@/components/asset-list/asset-list";
-import { AssetService } from "@/services/assets_service";
-import { attributeService } from "@/services/attributes_service";
+import MemberList, { Member as MemberType } from "@/components/member-list/MemberList";
+// Remove legacy services, use generated API clients only
 import { useUser } from "@/context/UserContext";
 import "./style.css";
 
@@ -24,11 +24,7 @@ interface Organization {
     updatedAt?: string;
 }
 
-interface Member {
-    id: string;
-    email: string;
-    role: string;
-}
+// Member type is now imported from MemberList
 
 interface Asset {
     id: string;
@@ -40,6 +36,8 @@ interface Asset {
     trashBin: boolean;
     createdAt: string;
     updatedAt: string;
+    type: string;
+    quantity?: number | null;
 }
 
 type TabType = 'assets' | 'members';
@@ -78,11 +76,9 @@ const SpecificOrganizationPage = () => {
         setSuccessMsg("");
         try {
             const token = localStorage.getItem("token");
-            const orgResponse = await organizationsApi.getOrganizationsIdentifier(
-                { identifier: id },
-                { headers: token ? { Authorization: `Bearer ${token}` } : {} }
-            );
+            const orgResponse = await organizationsApi.getOrganizationsIdentifier({ params: {identifier: id}, headers: token ? { Authorization: `Bearer ${token}` } : {} });
             const organization = orgResponse.data;
+            console.log("Fetched organization:", organization);
             if (organization) {
                 setOrg(organization);
                 await fetchMembers(organization);
@@ -99,12 +95,32 @@ const SpecificOrganizationPage = () => {
         setSuccessMsg("");
         try {
             const token = localStorage.getItem("token");
-            const assetsResp = await organizationsApi.getOrganizationsIdassets(
-                { id: orgId },
-                { headers: token ? { Authorization: `Bearer ${token}` } : {} }
+            const assetsResp = await organizationsApi.getOrganizationsIdassets({ params: {id: orgId}, headers: token ? { Authorization: `Bearer ${token}` } : {} });
+            const assetList = assetsResp.data || [];
+            // Fetch each asset's full details (with attributes)
+            const assetsWithAttributes = await Promise.all(
+                assetList.map(async (a: any) => {
+                    try {
+                        const assetDetailResp = await assetsApi.getAssetsId({ params: { id: a.id }, headers: token ? { Authorization: `Bearer ${token}` } : {} });
+                        const asset = assetDetailResp.data;
+                        return {
+                            ...asset,
+                            templateId: asset.templateId ?? null,
+                            description: asset.description ?? "",
+                            organizationId: asset.organizationId ?? "",
+                        };
+                    } catch (err) {
+                        // If fetching details fails, fallback to basic asset info
+                        return {
+                            ...a,
+                            templateId: a.templateId ?? null,
+                            description: a.description ?? "",
+                            organizationId: a.organizationId ?? "",
+                        };
+                    }
+                })
             );
-            // Map to ensure templateId is present (optional)
-            setAssets((assetsResp.data || []).map((a: any) => ({ ...a, templateId: a.templateId ?? null })));
+            setAssets(assetsWithAttributes);
         } catch (err) {
             setErrorMsg("Erro ao buscar ativos da organização.");
         }
@@ -117,11 +133,13 @@ const SpecificOrganizationPage = () => {
         setSuccessMsg("");
         try {
             const token = localStorage.getItem("token");
-            const data = await organizationsApi.getOrganizationsIdmembers(
-                { id: org.id },
-                { headers: token ? { Authorization: `Bearer ${token}` } : {} }
-            );
-            setMembers(data.data || []);
+            const data = await organizationsApi.getOrganizationsIdmembers({ params: {id: org.id}, headers: token ? { Authorization: `Bearer ${token}` } : {} });
+            // Map to match Member type exactly (id, email, role)
+            setMembers((data.data || []).map((m: any) => ({
+                id: m.id,
+                email: m.email,
+                role: m.role,
+            })));
         } catch (err) {
             setErrorMsg("Erro ao buscar membros da organização.");
         }
@@ -179,10 +197,8 @@ const SpecificOrganizationPage = () => {
             setSuccessMsg("");
             try {
                 const token = localStorage.getItem("token");
-                await organizationsApi.deleteOrganizationsId(
-                    { id: org.id },
-                    { headers: token ? { Authorization: `Bearer ${token}` } : {} }
-                );
+                // deleteOrganizationsId expects only options as argument
+                await onbeforeinputrganizationsApi.deleteOrganizationsId({ headers: token ? { Authorization: `Bearer ${token}` } : {} });
                 setOrg(null);
                 setMembers([]);
                 setSuccessMsg("Organização deletada com sucesso!");
@@ -204,22 +220,10 @@ const SpecificOrganizationPage = () => {
                 setLoading(false);
                 return;
             }
-            // Buscar userId pelo email
-            const userData = await adminService.getUserByIdentifier(email.trim());
-            const userId = userData?.id;
-            if (!userId) {
-                setErrorMsg("Usuário não encontrado para o e-mail informado.");
-                setLoading(false);
-                return;
-            }
-            const token = localStorage.getItem("token");
-            await organizationsApi.postOrganizationsIdmembers(
-                { id: org.id },
-                { body: { userId, role }, headers: token ? { Authorization: `Bearer ${token}` } : {} }
-            );
-            await fetchMembers(org);
-            setSuccessMsg("Membro adicionado com sucesso!");
-            setEmail("");
+            // Buscar userId pelo email não suportado pelo generated API, show error
+            setErrorMsg("Busca de usuário por e-mail não suportada pela API gerada.");
+            setLoading(false);
+            return;
         } catch (err) {
             setErrorMsg(
                 "Erro ao adicionar membro. Verifique o e-mail e tente novamente."
@@ -235,10 +239,8 @@ const SpecificOrganizationPage = () => {
         setSuccessMsg("");
         try {
             const token = localStorage.getItem("token");
-            await organizationsApi.patchOrganizationsIdmembersUserId(
-                { id: org.id, userId },
-                { body: { role: newRole }, headers: token ? { Authorization: `Bearer ${token}` } : {} }
-            );
+            // patchOrganizationsIdmembersUserId expects (id, userId, body, options)
+            await organizationsApi.patchOrganizationsIdmembersUserId(org.id, userId, { role: newRole as any }, { headers: token ? { Authorization: `Bearer ${token}` } : {} });
             await fetchMembers(org);
             setSuccessMsg("Função do membro atualizada com sucesso!");
         } catch (err) {
@@ -254,10 +256,8 @@ const SpecificOrganizationPage = () => {
         setSuccessMsg("");
         try {
             const token = localStorage.getItem("token");
-            await organizationsApi.deleteOrganizationsIdmembersUserId(
-                { id: org.id, userId },
-                { headers: token ? { Authorization: `Bearer ${token}` } : {} }
-            );
+            // deleteOrganizationsIdmembersUserId expects (id, userId, options)
+            await organizationsApi.deleteOrganizationsIdmembersUserId(org.id, userId, { headers: token ? { Authorization: `Bearer ${token}` } : {} });
             await fetchMembers(org);
             setSuccessMsg("Membro removido com sucesso!");
         } catch (err) {
@@ -272,43 +272,11 @@ const SpecificOrganizationPage = () => {
         setSuccessMsg("");
     }
 
-    const handleAddAttribute = async (
-        assetId: string,
-        attribute: {
-            name: string;
-            description: string;
-            type: string;
-            organizationId: string;
-        },
-        value: {
-            value: string | number | Date;
-            metricUnit?: string;
-            attributeType?: string;
-        }) => {
-        setLoading(true);
-        setErrorMsg("");
-        setSuccessMsg("");
-        try {
-            const result = await attributeService.createAttribute({
-                name: attribute.name,
-                description: attribute.description,
-                authorId: user?.id,
-                type: attribute.type,
-                organizationId: org?.id || ""
-            });
-            await attributeService.createAttributeValue(result.id, {
-                assetInstanceId: assetId,
-                value: value.value,
-                metricUnit: value.metricUnit,
-                attributeType: value.attributeType? value.attributeType : "text"
-            });
-            setSuccessMsg("Atributo adicionado com sucesso!");
-        } catch (err) {
-            console.error("Erro ao adicionar atributo:", err);
-            setErrorMsg("Erro ao adicionar atributo ao ativo.");
-        }
-        setLoading(false);
-    };
+        // Add attribute: if attribute is string (attributeId), only post value. If object, create then post value.
+        // Only refresh assets after attribute is added in modal
+        const handleAddAttribute = async () => {
+            await fetchOrganizationAssets(organizationId);
+        };
 
     const handleAddAsset = async (asset: {
       organizationId?: string | null | undefined;
@@ -320,13 +288,25 @@ const SpecificOrganizationPage = () => {
         setErrorMsg("");
         setSuccessMsg("");
         try {
-            const newAsset = await AssetService.createAssetInstance({
-                organizationId: org?.id || null,
-                templateId: asset.templateId || null,
+            const token = localStorage.getItem("token");
+            const resp = await AssetsApi.postAssets({
+                type: "unique",
+                organizationId: org?.id || "",
                 name: asset.name,
-                description: asset.description
-            });
-            setAssets((prev) => [...prev, newAsset]);
+                description: asset.description ?? "",
+                templateId: asset.templateId ?? null,
+            }, { headers: token ? { Authorization: `Bearer ${token}` } : {} });
+            // The response is an array of assets
+            const newAssets = resp.data;
+            setAssets((prev) => [
+                ...prev,
+                ...((Array.isArray(newAssets) ? newAssets : []).map((a: any) => ({
+                    ...a,
+                    templateId: a.templateId ?? null,
+                    description: a.description ?? "",
+                    organizationId: a.organizationId ?? "",
+                })))
+            ]);
             setSuccessMsg("Ativo adicionado com sucesso!");
         } catch (err) {
             console.error("Erro ao adicionar ativo:", err);
@@ -345,242 +325,87 @@ const SpecificOrganizationPage = () => {
 
     return (
         <>
-            <Header activeTab="organization" />
-            <main className="main">
-                <Breadcrumb items={[
-                    { label: "Organizações", href: "/pages/organization" },
-                    { label: org?.name ? org.name : "Organização" }]} />
-                {successMsg && <div className="success-message">{successMsg}</div>}
-                {errorMsg && <div className="error-message">{errorMsg}</div>}
-
-                <div className="organization-header">
-                    <h1>{org?.name}</h1>
-                    <p className="organization-description">{org?.description}</p>
-                </div>
-
-                {/* Tab Navigation */}
-                <div className="tab-navigation">
-                    <button 
-                        className={`tab-button ${activeTab === 'assets' ? 'active' : ''}`}
-                        onClick={() => setActiveTab('assets')}
-                    >
-                        <Package size={18} />
-                        <span>Ativos ({assets.length})</span>
-                    </button>
-                    <button 
-                        className={`tab-button ${activeTab === 'members' ? 'active' : ''}`}
-                        onClick={() => setActiveTab('members')}
-                    >
-                        <Users size={18} />
-                        <span>Membros ({members.length})</span>
-                    </button>
-                </div>
-{/* Tab Content */}
-                <div className="tab-content">
-                    {activeTab === 'assets' && (
-                        <div className="assets-tab">
-                            <AssetList 
-                                assets={assets} 
-                                onAddAttribute={handleAddAttribute} 
-                                onAddAsset={handleAddAsset}
-                                loading={loading}
-                            />
+            <main className="min-h-screen flex flex-col items-center justify-start px-4 bg-[url('/pattern_faded.png')] bg-repeat bg-[length:98px_98px]">
+                <Header activeTab="organization" />
+                <section className="w-full flex-1 flex flex-col bg-stuff-white rounded-2xl shadow-[8px_8px_0_0_rgba(0,0,0,0.1)] items-center py-10 px-6 md:px-16 my-4">
+                    <Breadcrumb items={[
+                        { label: "Organizações", href: "/organization" },
+                        { label: org?.name ? org.name : "Organização" }]} />
+                    {/* {successMsg && <div className="success-message mb-4">{successMsg}</div>}
+                    {errorMsg && <div className="error-message mb-4">{errorMsg}</div>} */}
+                    <div className="w-full flex flex-col md:flex-row md:items-center md:justify-between gap-2 my-6">
+                        <div>
+                            <h1 className="text-3xl font-bold text-stuff-mid mb-1">{org?.name}</h1>
+                            <p className="text-stuff-dark text-lg">{org?.description}</p>
                         </div>
-                    )}
-
-                    {activeTab === 'members' && (
-                        <div className="members-tab">
-                            <div className="members-header">
-                                <h2>Membros da Organização</h2>
-                                <div className="add-member-form">
-                                    <div className="form-row">
-                                        <div className="input-group">
-                                            <Mail size={16} className="input-icon" />
-                                            <input
-                                                type="email"
-                                                value={email}
-                                                onChange={(e) => setEmail(e.target.value)}
-                                                placeholder="Email do usuário"
-                                                className="member-email-input"
-                                            />
-                                        </div>
-                                        <div className="select-group">
-                                            <select 
-                                                value={role} 
-                                                onChange={(e) => setRole(e.target.value)}
-                                                className="role-select"
-                                            >
-                                                <option value="membro">Membro</option>
-                                                <option value="admin">Admin</option>
-                                            </select>
-                                        </div>
-                                        <button 
-                                            onClick={handleAddUser} 
-                                            disabled={loading || !email.trim()}
-                                            className="add-member-btn"
+                        {/* Optionally add org actions here */}
+                    </div>
+                    <div className="flex flex-row gap-2 mb-6 w-full">
+                        <button
+                            className={`px-4 py-2 rounded-lg font-semibold text-base transition-colors ${activeTab === 'assets' ? 'bg-stuff-primary text-white' : 'bg-stuff-gray-50 text-stuff-mid'}`}
+                            onClick={() => setActiveTab('assets')}
+                        >
+                            <Package size={18} className="inline mr-2" />Ativos ({assets.length})
+                        </button>
+                        <button
+                            className={`px-4 py-2 rounded-lg font-semibold text-base transition-colors ${activeTab === 'members' ? 'bg-stuff-primary text-white' : 'bg-stuff-gray-50 text-stuff-mid'}`}
+                            onClick={() => setActiveTab('members')}
+                        >
+                            <Users size={18} className="inline mr-2" />Membros ({members.length})
+                        </button>
+                    </div>
+                    <div className="w-full">
+                        {activeTab === 'assets' && (
+                            <div className="w-full">
+                                <AssetList
+                                    assets={assets}
+                                    onAddAttribute={handleAddAttribute}
+                                    onAddAsset={handleAddAsset}
+                                    loading={loading}
+                                />
+                            </div>
+                        )}
+                        {activeTab === 'members' && (
+                            <div className="w-full">
+                                <div className="flex flex-col md:flex-row md:items-end gap-4 mb-6">
+                                    <div className="flex-1 flex flex-row items-center gap-2">
+                                        <Mail size={16} className="text-stuff-mid" />
+                                        <input
+                                            type="email"
+                                            value={email}
+                                            onChange={(e) => setEmail(e.target.value)}
+                                            placeholder="Email do usuário"
+                                            className="flex-1 border border-stuff-gray-100 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-stuff-primary"
+                                        />
+                                        <select
+                                            value={role}
+                                            onChange={(e) => setRole(e.target.value)}
+                                            className="border border-stuff-gray-100 rounded-lg px-2 py-2 focus:outline-none"
                                         >
-                                            <UserPlus size={16} />
+                                            <option value="membro">Membro</option>
+                                            <option value="admin">Admin</option>
+                                        </select>
+                                        <button
+                                            onClick={handleAddUser}
+                                            disabled={loading || !email.trim()}
+                                            className="ml-2 px-4 py-2 rounded-lg bg-stuff-primary text-white font-semibold hover:bg-stuff-primary-dark transition-colors"
+                                        >
+                                            <UserPlus size={16} className="inline mr-1" />
                                             {loading ? 'Adicionando...' : 'Adicionar'}
                                         </button>
                                     </div>
                                 </div>
+                                <MemberList
+                                    members={members}
+                                    loading={loading}
+                                    onUpdateRole={handleUpdateRole}
+                                    onDelete={handleDeleteUser}
+                                />
                             </div>
-
-                            <div className="members-list">
-                                {members.length === 0 ? (
-                                    <div className="empty-members">
-                                        <Users size={48} className="empty-icon" />
-                                        <h3>Nenhum membro encontrado</h3>
-                                        <p>Adicione membros à organização usando o formulário acima.</p>
-                                    </div>
-                                ) : (
-                                    <div className="members-grid">
-                                        {members.map((member) => (
-                                            <div key={member.id} className="member-card">
-                                                <div className="member-info">
-                                                    <div className="member-avatar">
-                                                        <Users size={24} />
-                                                    </div>
-                                                    <div className="member-details">
-                                                        <h4 className="member-email">{member.email}</h4>
-                                                        <div className={getRoleBadgeClass(member.role)}>
-                                                            {getRoleIcon(member.role)}
-                                                            <span>{member.role === 'admin' ? 'Administrador' : 'Membro'}</span>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <div className="member-actions">
-                                                    <select
-                                                        value={member.role}
-                                                        onChange={(e) => handleUpdateRole(member.id, e.target.value)}
-                                                        className="role-select-small"
-                                                        disabled={loading}
-                                                    >
-                                                        <option value="membro">Membro</option>
-                                                        <option value="admin">Admin</option>
-                                                    </select>
-                                                    <button
-                                                        onClick={() => handleDeleteUser(member.id)}
-                                                        disabled={loading}
-                                                        className="remove-member-btn"
-                                                        title="Remover membro"
-                                                    >
-                                                        <Trash size={16} />
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-                    )}
-                </div>
+                        )}
+                    </div>
+                </section>
             </main>
-
-            {/* <div className="container">
-        {!selectedOrg && (
-          <div className="form-container">
-            <h2>Nova Organização</h2>
-            <input
-              name="name"
-              placeholder="Nome"
-              onChange={handleChange}
-              value={form.name}
-            />
-            <textarea
-              name="description"
-              placeholder="Descrição"
-              onChange={handleChange}
-              value={form.description}
-            />
-            <input
-              name="password"
-              type="password"
-              placeholder="Senha"
-              onChange={handleChange}
-              value={form.password}
-            />
-            <input
-              name="slug"
-              placeholder="Slug"
-              onChange={handleChange}
-              value={form.slug}
-            />
-            <button onClick={handleSubmit} disabled={loading}>
-              Criar
-            </button>
-          </div>
-        )}
-
-        {selectedOrg && (
-          <div className="members-container">
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-              }}
-            >
-              <h2 style={{ marginBottom: 0 }}>{selectedOrg.name}</h2>
-              <button
-                onClick={() => {
-                  setSelectedOrg(null);
-                  setMembers([]);
-                  setForm({
-                    name: "",
-                    description: "",
-                    password: "",
-                    slug: "",
-                  });
-                }}
-              >
-                Voltar
-              </button>
-            </div>
-            <div style={{ marginBottom: 16 }}>
-              <strong>Descrição:</strong> {selectedOrg.description}
-              <br />
-              <strong>Slug:</strong> {selectedOrg.slug}
-            </div>
-            <h3>Membros da Organização</h3>
-            <input
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="Email do usuário"
-            />
-            <select value={role} onChange={(e) => setRole(e.target.value)}>
-              <option value="admin">Admin</option>
-              <option value="membro">Membro</option>
-            </select>
-            <button onClick={handleAddUser} disabled={loading}>
-              Adicionar
-            </button>
-
-            <ul>
-              {members.map((user) => (
-                <li key={user.id}>
-                  {user.email} -
-                  <select
-                    value={user.role}
-                    onChange={(e) => handleUpdateRole(user.id, e.target.value)}
-                  >
-                    <option value="admin">Admin</option>
-                    <option value="membro">Membro</option>
-                  </select>
-                  <button
-                    onClick={() => handleDeleteUser(user.id)}
-                    disabled={loading}
-                    className="danger"
-                  >
-                    Remover
-                  </button>
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
-      </div> */}
         </>
     );
 };

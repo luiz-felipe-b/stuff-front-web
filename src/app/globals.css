@@ -51,3 +51,22 @@
   --font-weight-bold: 700;
   --font-weight-extrabold: 800;
 }
+
+/* Custom scrollbar for modals and scrollable containers */
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-stuff-mid) var(--color-stuff-white);
+}
+.custom-scrollbar::-webkit-scrollbar {
+  width: 8px;
+  background: var(--color-stuff-white);
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: var(--color-stuff-mid);
+  border-radius: 8px;
+  border: 2px solid var(--color-stuff-white);
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: var(--color-stuff-white);
+  border-radius: 8px;
+}

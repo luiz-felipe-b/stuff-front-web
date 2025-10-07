@@ -26,7 +26,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(({ icon, error, className
       {icon && <span className="absolute left-4 text-stuff-mid text-lg">{icon}</span>}
       <input
         ref={ref}
-        className={`pl-12 pr-4 py-3 rounded-lg w-full text-base focus:outline-none border-2 border-t-4 placeholder:text-stuff-gray-100 ${colorClass} ${className}`}
+        className={`${icon ? "pl-12" : "pl-4"} pr-4 py-3 rounded-lg w-full text-base focus:outline-none border-2 border-t-4 placeholder:text-stuff-gray-100 ${colorClass} ${className}`}
         aria-invalid={!!error}
         {...props}
       />

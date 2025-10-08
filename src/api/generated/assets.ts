@@ -144,7 +144,21 @@ const endpoints = makeApi([
     ],
     response: z.object({
       message: z.string().optional().default("Assets found"),
-      data: z.array(
+      data: z.union([
+        z.array(
+          z.object({
+            id: z.string().uuid(),
+            type: z.enum(["unique", "replicable"]),
+            quantity: z.number().int().nullable(),
+            organizationId: z.string().uuid().nullish(),
+            creatorUserId: z.string().uuid(),
+            name: z.string(),
+            description: z.string().nullish(),
+            trashBin: z.boolean().optional().default(false),
+            createdAt: z.string().datetime({ offset: true }),
+            updatedAt: z.string().datetime({ offset: true }),
+          })
+        ),
         z.object({
           id: z.string().uuid(),
           type: z.enum(["unique", "replicable"]),
@@ -157,7 +171,7 @@ const endpoints = makeApi([
           createdAt: z.string().datetime({ offset: true }),
           updatedAt: z.string().datetime({ offset: true }),
         })
-      ),
+      ]),
     }),
     errors: [
       {

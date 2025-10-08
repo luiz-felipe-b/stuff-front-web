@@ -43,37 +43,37 @@ const MemberList: React.FC<MemberListProps> = ({
     );
   }
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
       {members.map((member) => (
         <div
           key={member.id}
-          className="flex flex-row items-center justify-between bg-stuff-gray-50 rounded-lg p-4 shadow-sm"
+          className="flex flex-row items-center justify-between bg-white border-2 border-stuff-gray-100 rounded-2xl px-6 py-5 shadow-[4px_4px_0_0_rgba(0,0,0,0.06)] transition-all hover:shadow-[8px_8px_0_0_rgba(0,0,0,0.10)] hover:border-stuff-primary/40"
         >
-          <div className="flex flex-row items-center gap-3">
-            <div className="bg-stuff-primary/10 rounded-full p-2">
-              <Users size={24} className="text-stuff-primary" />
+          <div className="flex flex-row items-center gap-4 min-w-0">
+            <div className="flex items-center justify-center w-12 h-12 rounded-full bg-stuff-primary/10">
+              <Users size={28} className="text-stuff-primary" />
             </div>
-            <div>
-              <h4 className="font-semibold text-stuff-black text-base">{member.email}</h4>
+            <div className="min-w-0">
+              <h4 className="font-semibold text-stuff-dark text-lg truncate">{member.email}</h4>
               <div
-                className={`inline-flex items-center px-2 py-1 rounded text-xs font-medium ${
+                className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold mt-1 ${
                   member.role === "admin"
                     ? "bg-stuff-success/10 text-stuff-success"
                     : "bg-stuff-gray-100 text-stuff-mid"
                 }`}
               >
                 {getRoleIcon(member.role)}
-                <span className="ml-1">
+                <span>
                   {member.role === "admin" ? "Administrador" : "Membro"}
                 </span>
               </div>
             </div>
           </div>
-          <div className="flex flex-row items-center gap-2">
+          <div className="flex flex-row items-center gap-2 ml-4">
             <select
               value={member.role}
               onChange={(e) => onUpdateRole(member.id, e.target.value)}
-              className="border border-stuff-gray-100 rounded-lg px-2 py-1 text-sm focus:outline-none"
+              className="border border-stuff-gray-100 rounded-lg px-3 py-2 text-sm font-medium bg-stuff-gray-50 focus:outline-none focus:ring-2 focus:ring-stuff-primary/30 transition-colors"
               disabled={loading}
             >
               <option value="membro">Membro</option>
@@ -82,10 +82,10 @@ const MemberList: React.FC<MemberListProps> = ({
             <button
               onClick={() => onDelete(member.id)}
               disabled={loading}
-              className="ml-1 px-2 py-1 rounded bg-stuff-danger text-white hover:bg-stuff-danger-dark transition-colors"
+              className="ml-1 px-2 py-2 rounded-full bg-stuff-danger/90 text-white hover:bg-stuff-danger hover:scale-105 transition-all focus:outline-none focus:ring-2 focus:ring-stuff-danger/30"
               title="Remover membro"
             >
-              <Trash size={16} />
+              <Trash size={18} />
             </button>
           </div>
         </div>

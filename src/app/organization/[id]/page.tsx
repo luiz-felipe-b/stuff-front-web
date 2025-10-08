@@ -257,7 +257,7 @@ const SpecificOrganizationPage = () => {
         try {
             const token = localStorage.getItem("token");
             // deleteOrganizationsIdmembersUserId expects (id, userId, options)
-            await organizationsApi.deleteOrganizationsIdmembersUserId(org.id, userId, { headers: token ? { Authorization: `Bearer ${token}` } : {} });
+            await organizationsApi.deleteOrganizationsIdmembersUserId(undefined, { params: { id: org.id, userId }, headers: token ? { Authorization: `Bearer ${token}` } : {} });
             await fetchMembers(org);
             setSuccessMsg("Membro removido com sucesso!");
         } catch (err) {
@@ -289,23 +289,28 @@ const SpecificOrganizationPage = () => {
         setSuccessMsg("");
         try {
             const token = localStorage.getItem("token");
-            const resp = await AssetsApi.postAssets({
+            const resp = await assetsApi.postAssets({
                 type: "unique",
                 organizationId: org?.id || "",
                 name: asset.name,
                 description: asset.description ?? "",
                 templateId: asset.templateId ?? null,
             }, { headers: token ? { Authorization: `Bearer ${token}` } : {} });
-            // The response is an array of assets
-            const newAssets = resp.data;
+            // Accept both array and object responses
+            let newAssets: any[] = [];
+            if (Array.isArray(resp.data)) {
+                newAssets = resp.data;
+            } else if (resp.data && typeof resp.data === 'object') {
+                newAssets = [resp.data];
+            }
             setAssets((prev) => [
                 ...prev,
-                ...((Array.isArray(newAssets) ? newAssets : []).map((a: any) => ({
+                ...newAssets.map((a: any) => ({
                     ...a,
                     templateId: a.templateId ?? null,
                     description: a.description ?? "",
                     organizationId: a.organizationId ?? "",
-                })))
+                }))
             ]);
             setSuccessMsg("Ativo adicionado com sucesso!");
         } catch (err) {

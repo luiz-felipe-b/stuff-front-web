@@ -22,7 +22,8 @@ import {
   File,
   Radio,
   ToggleLeft,
-  Tag
+  Tag,
+  Pencil
 } from "lucide-react";
 import { attributesApi } from "@/services/api";
 
@@ -182,6 +183,66 @@ const AssetDetailsModal: React.FC<AssetDetailsModalProps> = ({
   // Option input state for select/multiselection attribute types
   const [optionInput, setOptionInput] = useState("");
 
+  // --- Inline attribute value editing state ---
+  const [editingAttrId, setEditingAttrId] = useState<string | null>(null);
+  const [editingValue, setEditingValue] = useState<string>("");
+  const [editingLoading, setEditingLoading] = useState(false);
+
+  // --- Attribute value deletion state ---
+  const [deletingAttrId, setDeletingAttrId] = useState<string | null>(null);
+  const [deletingLoading, setDeletingLoading] = useState(false);
+
+  // Delete attribute value handler
+  const handleDeleteAttributeValue = async (attribute: Attribute) => {
+    if (!asset) return;
+    const valueObj = attribute.values.find(v => v.assetInstanceId === asset.id && v.attributeId === attribute.id);
+    if (!valueObj) return;
+    if (!window.confirm(`Tem certeza que deseja remover o valor do atributo "${attribute.name}" deste ativo?`)) return;
+    setDeletingAttrId(attribute.id);
+    setDeletingLoading(true);
+    try {
+      await attributesApi.deleteAttributesvalueAttributeValueId(undefined, { params: { attributeValueId: valueObj.id } });
+      if (onAttributeSaved) await onAttributeSaved();
+    } catch (err) {
+      alert('Erro ao remover valor do atributo.');
+    }
+    setDeletingAttrId(null);
+    setDeletingLoading(false);
+  };
+
+  // Start editing a value
+  const handleStartEditValue = (attribute: Attribute) => {
+    const val = attribute.values.find(v => v.assetInstanceId === asset?.id && v.attributeId === attribute.id)?.value;
+    setEditingAttrId(attribute.id);
+    setEditingValue(val ?? "");
+  };
+
+  // Cancel editing
+  const handleCancelEditValue = () => {
+    setEditingAttrId(null);
+    setEditingValue("");
+  };
+
+  // Save edited value
+  const handleSaveEditValue = async (attribute: Attribute) => {
+    if (!asset) return;
+    const valueObj = attribute.values.find(v => v.assetInstanceId === asset.id && v.attributeId === attribute.id);
+    if (!valueObj) return;
+    setEditingLoading(true);
+    try {
+      await attributesApi.patchAttributesvalueAttributeValueId(
+        { value: editingValue },
+        { params: { attributeValueId: valueObj.id } }
+      );
+      setEditingAttrId(null);
+      setEditingValue("");
+      if (onAttributeSaved) await onAttributeSaved();
+    } catch (err) {
+      alert('Erro ao atualizar valor do atributo.');
+    }
+    setEditingLoading(false);
+  };
+
   // Reset form and fetch org attributes when modal opens/closes
   useEffect(() => {
     if (!open) {
@@ -244,11 +305,15 @@ const AssetDetailsModal: React.FC<AssetDetailsModalProps> = ({
       valueIsEmpty = !newAttribute.value.trim();
     } else if (Array.isArray(newAttribute.value)) {
       valueIsEmpty = newAttribute.value.length === 0;
-    } else if (newAttribute.type === 'timemetric' && typeof newAttribute.value === 'object' && newAttribute.value !== null && !(newAttribute.value instanceof File)) {
+    } else if (
+      newAttribute.type === 'timemetric' &&
+      typeof newAttribute.value === 'object' &&
+      newAttribute.value !== null &&
+      (!(typeof File === 'function' && newAttribute.value instanceof File))
+    ) {
       valueIsEmpty = !(typeof (newAttribute.value as any).scale === 'string' && (newAttribute.value as any).scale.trim() && typeof (newAttribute.value as any).unit === 'string' && (newAttribute.value as any).unit.trim());
     } else if (
-      typeof File !== 'undefined' &&
-      newAttribute.value instanceof File
+      typeof File === 'function' && newAttribute.value instanceof File
     ) {
       valueIsEmpty = !(newAttribute.value && 'name' in newAttribute.value && (newAttribute.value as File).name);
     } else if (!newAttribute.value) {
@@ -726,6 +791,7 @@ const AssetDetailsModal: React.FC<AssetDetailsModalProps> = ({
                   const attributeValue = attribute.values.find(
                     val => val.assetInstanceId === asset.id && val.attributeId === attribute.id
                   );
+                  const isEditing = editingAttrId === attribute.id;
                   return (
                     <div key={attribute.id} className="flex items-center gap-4 bg-stuff-gray-50 border border-stuff-gray-100 rounded-lg px-4 py-3 shadow-sm">
                       {getAttributeIcon(attribute.type)}
@@ -736,8 +802,50 @@ const AssetDetailsModal: React.FC<AssetDetailsModalProps> = ({
                         </div>
                         {attribute.description && <p className="text-stuff-mid text-xs truncate mt-0.5">{attribute.description}</p>}
                       </div>
-                      {attributeValue && (
-                        <div className="text-base text-stuff-primary whitespace-nowrap">{formatValue(attributeValue.value, attribute.type, attribute.unit)}</div>
+                      {isEditing ? (
+                        <form className="flex items-center gap-2" onSubmit={e => { e.preventDefault(); handleSaveEditValue(attribute); }}>
+                          <Input
+                            type={attribute.type === 'number' ? 'number' : 'text'}
+                            value={editingValue}
+                            onChange={e => setEditingValue(e.target.value)}
+                            className="w-28"
+                            autoFocus
+                          />
+                          <Button
+                            type="submit"
+                            size="sm"
+                            palette="success"
+                            loading={editingAttrId === attribute.id && editingLoading}
+                            disabled={editingAttrId === attribute.id && editingLoading}
+                          >Salvar</Button>
+                          <Button
+                            type="button"
+                            size="sm"
+                            palette="default"
+                            onClick={handleCancelEditValue}
+                            disabled={editingAttrId === attribute.id && editingLoading}
+                          >Cancelar</Button>
+                        </form>
+                      ) : (
+                        <>
+                          {attributeValue && (
+                            <div className="text-base text-stuff-primary whitespace-nowrap">{formatValue(attributeValue.value, attribute.type, attribute.unit)}</div>
+                          )}
+                          <Button size="sm" palette="default" onClick={() => handleStartEditValue(attribute)} className="ml-2"><Pencil/></Button>
+                          {/* Delete attribute value button */}
+                          {attributeValue && (
+                            <Button
+                              size="sm"
+                              palette="danger"
+                              onClick={() => handleDeleteAttributeValue(attribute)}
+                              loading={deletingAttrId === attribute.id && deletingLoading}
+                              disabled={deletingAttrId === attribute.id && deletingLoading}
+                              title="Remover valor do atributo deste ativo"
+                            >
+                              <Trash2 />
+                            </Button>
+                          )}
+                        </>
                       )}
                     </div>
                   );

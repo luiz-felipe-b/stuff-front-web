@@ -69,7 +69,7 @@ const LoginPage: React.FC = () => {
       setSuccess(true);
 
       setTimeout(() => {
-        router.push(`/dashboard`);
+        router.push(`/select-organization`);
       }, 2000);
     } catch (error: any) {
       console.error("Erro no login:", error);

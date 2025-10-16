@@ -1,12 +1,14 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useSelectedOrganization } from "@/context/SelectedOrganizationContext";
 import { organizationsApi } from "@/services/api";
-import { adminService } from "../../services/admin_service"; // Para buscar userId pelo email
+// import { adminService } from "../../services/admin_service"; // Para buscar userId pelo email
 // import "../../styles/organizacao.css";
 import Header from "@/components/header/header";
 import { Plus, RefreshCcw, Trash } from "lucide-react";
-import DeleteOrganizationModal from "@/components/OrganizationList/DeleteOrganizationModal";
+// import DeleteOrganizationModal from "@/components/OrganizationList/DeleteOrganizationModal";
+import OrganizationList from "@/components/OrganizationList/OrganizationList";
 import CreateOrganizationModal from "@/components/OrganizationList/CreateOrganizationModal";
 import Loader from "@/components/Loader/Loader";
 import { ListItem } from "@/components/list";
@@ -28,6 +30,7 @@ interface Member {
 }
 
 const OrganizacoesPage = () => {
+  const { organization } = useSelectedOrganization();
   const [organizations, setOrganizations] = useState<Organization[]>([]);
   const [selectedOrg, setSelectedOrg] = useState<Organization | null>(null);
   const [form, setForm] = useState({
@@ -52,9 +55,13 @@ const OrganizacoesPage = () => {
   // Buscar todas as organizações ao carregar a página
 
   useEffect(() => {
+    if (!organization) {
+      router.replace('/select-organization');
+      return;
+    }
     fetchUserOrganizations();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [organization, router]);
 
   async function fetchUserOrganizations() {
     setLoading(true);
@@ -147,6 +154,8 @@ const OrganizacoesPage = () => {
 
 
 
+  if (!organization) return null;
+
   return (
     <>
       <div className="bg-[url('/pattern_faded.png')] bg-repeat bg-[length:98px_98px]">
@@ -182,49 +191,22 @@ const OrganizacoesPage = () => {
                 />
               </div>
             </div>
-            <div className="grid grid-cols-1 gap-4 w-full min-h-[180px]">
-              {loading ? (
-                <Loader label="Carregando organizações..." />
-              ) : organizations.length === 0 ? (
-                <div className="text-center text-stuff-gray-100 py-8">Nenhuma organização encontrada.</div>
-              ) : (
-                organizations.map((org) => (
-                  <ListItem
-                    key={org.id}
-                    onClick={() => handleSelectOrg(org)}
-                    rightContent={
-                      <Button
-                        variant="primary"
-                        palette="danger"
-                        size="sm"
-                        iconBefore={<Trash />}
-                        className="ml-2"
-                        title="Deletar organização"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setSelectedOrg(org);
-                          setShowDeleteModal(true);
-                        }}
-                      />
-                    }
-                  >
-                    <span className="font-semibold text-lg text-stuff-black truncate max-w-[200px]">{org.name}</span>
-                    <span className="text-stuff-dark truncate max-w-[300px]">{org.description}</span>
-                  </ListItem>
-                ))
-              )}
-
-              <DeleteOrganizationModal
-                open={showDeleteModal && !!selectedOrg}
-                orgName={selectedOrg?.name || ''}
-                loading={loading}
-                onCancel={() => setShowDeleteModal(false)}
-                onConfirm={async () => {
-                  await handleDelete();
-                  setShowDeleteModal(false);
-                }}
-              />
-            </div>
+            <OrganizationList
+              organizations={organizations}
+              loading={loading}
+              onSelect={handleSelectOrg}
+              onDelete={(org) => {
+                setSelectedOrg(org);
+                setShowDeleteModal(true);
+              }}
+              showDeleteModal={showDeleteModal}
+              selectedOrg={selectedOrg}
+              onCancelDelete={() => setShowDeleteModal(false)}
+              onConfirmDelete={async () => {
+                await handleDelete();
+                setShowDeleteModal(false);
+              }}
+            />
           </section>
         </main>
       </div>

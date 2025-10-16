@@ -21,17 +21,15 @@ const DeleteOrganizationModal: React.FC<DeleteOrganizationModalProps> = ({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-stuff-black/40" onClick={onCancel}>
       <div className="bg-stuff-white rounded-2xl shadow-2xl w-full max-w-md p-6 relative animate-fadeIn" onClick={e => e.stopPropagation()}>
-        <button className="absolute top-4 right-4 text-stuff-mid hover:text-stuff-dark transition-colors" onClick={onCancel} aria-label="Fechar">
+        <button className=" absolute top-4 right-4 text-stuff-mid hover:text-stuff-dark transition-colors cursor-pointer" onClick={onCancel} aria-label="Fechar">
           <X size={24} />
         </button>
         <div className="flex items-center gap-3 mb-4">
-          <div className="flex items-center justify-center w-12 h-12 rounded-full bg-red-100">
-            <X size={28} className="text-red-600" />
-          </div>
           <div>
-            <h2 className="text-xl font-bold text-stuff-dark">Confirmar exclusão</h2>
-            <p className="text-stuff-mid text-sm">Esta ação não pode ser desfeita.</p>
+            <h2 className="text-xl font-bold text-danger-base">Excluir a organização?</h2>
+            <p className="text-stuff-mid text-sm"></p>
           </div>
+
         </div>
         <div className="mb-6 text-stuff-dark">
           Tem certeza que deseja deletar a organização <b>{orgName}</b>?

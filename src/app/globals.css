@@ -52,21 +52,21 @@
   --font-weight-extrabold: 800;
 }
 
-/* Custom scrollbar for modals and scrollable containers */
-.custom-scrollbar {
+/* Universal custom scrollbar styling */
+html {
   scrollbar-width: thin;
   scrollbar-color: var(--color-stuff-mid) var(--color-stuff-white);
 }
-.custom-scrollbar::-webkit-scrollbar {
+html::-webkit-scrollbar, body::-webkit-scrollbar, *::-webkit-scrollbar {
   width: 8px;
   background: var(--color-stuff-white);
 }
-.custom-scrollbar::-webkit-scrollbar-thumb {
+html::-webkit-scrollbar-thumb, body::-webkit-scrollbar-thumb, *::-webkit-scrollbar-thumb {
   background: var(--color-stuff-mid);
   border-radius: 8px;
   border: 2px solid var(--color-stuff-white);
 }
-.custom-scrollbar::-webkit-scrollbar-track {
+html::-webkit-scrollbar-track, body::-webkit-scrollbar-track, *::-webkit-scrollbar-track {
   background: var(--color-stuff-white);
   border-radius: 8px;
 }

@@ -1,6 +1,8 @@
 "use client"
 
 import { useEffect, useState } from 'react';
+import { useSelectedOrganization } from "@/context/SelectedOrganizationContext";
+import { useRouter } from "next/navigation";
 import { adminService } from '../../services/admin_service';
 import '../../styles/admin.css';
 
@@ -19,6 +21,8 @@ interface User {
 }
 
 export default function AdminPage() {
+  const { organization } = useSelectedOrganization();
+  const router = useRouter();
   const [users, setUsers] = useState<User[]>([]);
   const [search, setSearch] = useState('');
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
@@ -91,8 +95,12 @@ export default function AdminPage() {
   }
 
   useEffect(() => {
+    if (!organization) {
+      router.replace('/select-organization');
+      return;
+    }
     fetchUsers();
-  }, []);
+  }, [organization, router]);
 
   const indexOfLastUser = currentPage * usersPerPage;
   const indexOfFirstUser = indexOfLastUser - usersPerPage;
@@ -104,6 +112,8 @@ export default function AdminPage() {
   function prevPage() {
     setCurrentPage((prev) => Math.max(prev - 1, 1));
   }
+
+  if (!organization) return null;
 
   return (
     <div className="admin-container">

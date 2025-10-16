@@ -4,12 +4,15 @@ import Head from 'next/head';
 import '../../styles/profile.css';
 import Header from '@/components/header/header';
 import { useUser } from "../../context/UserContext"
-import { Edit, Save, CircleX, UserCircle2, IdCardLanyard } from 'lucide-react';
+import { useSelectedOrganization } from "@/context/SelectedOrganizationContext";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from 'react';
 import { FaUser } from 'react-icons/fa';
 
 export default function Profile() {
   const { user } = useUser();
+  const { organization } = useSelectedOrganization();
+  const router = useRouter();
 
   const [formData, setFormData] = useState({
     userName: "",
@@ -30,6 +33,13 @@ export default function Profile() {
     }
   }, [user]);
 
+  // Require selected organization
+  useEffect(() => {
+    if (!organization) {
+      router.replace('/select-organization');
+    }
+  }, [organization, router]);
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({
@@ -37,6 +47,8 @@ export default function Profile() {
       [name]: value
     }));
   };
+
+  if (!user || !organization) return null;
 
   return (
     <>

@@ -2,14 +2,14 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { UserProvider } from "@/context/UserContext";
+import { SelectedOrganizationProvider } from "@/context/SelectedOrganizationContext";
 import { Onest } from "next/font/google";
 import TailwindToaster from "@/components/TailwindToaster/TailwindToaster";
 
 const onest = Onest({ subsets: ["latin"], weight: ["100","200","300","400","500","600","700","800","900"] });
 
 export const metadata: Metadata = {
-  title: "Estoque Inteligente",
-  description: "Landing page moderna e responsiva",
+  title: "stuff"
 };
 
 export default function RootLayout({
@@ -19,10 +19,12 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="pt-br">
-      <body className={`antialiased ${onest.className}`}>
+      <body className={`antialiased ${onest.className} h-screen bg-[url('/pattern_faded.png')] bg-repeat bg-[length:98px_98px] `}>
         <UserProvider>
-          <TailwindToaster />
-          {children}
+          <SelectedOrganizationProvider>
+            <TailwindToaster />
+            {children}
+          </SelectedOrganizationProvider>
         </UserProvider>
       </body>
     </html>

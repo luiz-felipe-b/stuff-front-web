@@ -1,12 +1,14 @@
 "use client";
 
 import { useUser } from "../../context/UserContext";
+import { useSelectedOrganization } from "@/context/SelectedOrganizationContext";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import "./UserDropdown.css";
 
 const UserDropdown = () => {
   const { user, setUser } = useUser();
+  const { setOrganization } = useSelectedOrganization();
   const router = useRouter();
   const [open, setOpen] = useState(false);
 
@@ -21,6 +23,7 @@ const UserDropdown = () => {
       // Se der erro, ainda assim faz logout local
     }
     setUser(null);
+    setOrganization(null);
     router.push("/");
   }
 

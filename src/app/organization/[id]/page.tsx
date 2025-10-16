@@ -7,11 +7,12 @@ import { OrganizationsApi } from "@/api/generated/organizations";
 import Header from "@/components/header/header";
 import { Mail, Package, Plus, Shield, ShieldCheck, Trash, UserPlus, Users, X } from "lucide-react";
 import Link from "next/link";
-import Breadcrumb from "@/components/breadcrumb/breadcrumb";
-import AssetList from "@/components/asset-list/asset-list";
+import Breadcrumb from "@/components/Breadcrumb/breadcrumb";
+import AssetList from "@/components/AssetList/AssetList";
 import MemberList, { Member as MemberType } from "@/components/member-list/MemberList";
 // Remove legacy services, use generated API clients only
 import { useUser } from "@/context/UserContext";
+import { useSelectedOrganization } from "@/context/SelectedOrganizationContext";
 import "./style.css";
 
 interface Organization {
@@ -44,6 +45,8 @@ type TabType = 'assets' | 'members';
 
 const SpecificOrganizationPage = () => {
     const [org, setOrg] = useState<Organization | null>(null);
+    const { organization } = useSelectedOrganization();
+    const router = useRouter();
     const { user, setUser } = useUser();
     const [members, setMembers] = useState<Member[]>([]);
     const [assets, setAssets] = useState<Asset[]>([]);
@@ -55,19 +58,25 @@ const SpecificOrganizationPage = () => {
     const [errorMsg, setErrorMsg] = useState("");
     const [activeTab, setActiveTab] = useState<TabType>('assets');
     const params = useParams();
-    const router = useRouter();
 
     const organizationId = params.id as string;
     
-    // Buscar todas as organizações ao carregar a página
-    useEffect(() => {
-      if (organizationId) {
-        fetchSpecificOrganization(organizationId);
-        fetchOrganizationAssets(organizationId);
-      }
-    }, [organizationId]);
+        // Require selected organization
+        useEffect(() => {
+            if (!organization) {
+                router.replace('/select-organization');
+            }
+        }, [organization, router]);
 
-    if (!user) return null;
+        // Buscar todas as organizações ao carregar a página
+        useEffect(() => {
+            if (organizationId) {
+                fetchSpecificOrganization(organizationId);
+                fetchOrganizationAssets(organizationId);
+            }
+        }, [organizationId]);
+
+    if (!user || !organization) return null;
     
 
     async function fetchSpecificOrganization(id: string) {

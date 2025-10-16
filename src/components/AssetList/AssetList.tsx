@@ -6,11 +6,13 @@ import Button from "../Button/Button";
 import ToggleButton from "../Button/ToggleButton";
 import AddAssetModal from "./AddAssetModal";
 import AssetDetailsModal from "./AssetDetailsModal";
-import { Trash2, Edit3, Package, Calendar, User, Eye, MoreVertical, Search, Filter, X, Hash, Weight, CalendarDays, Plus, Type, Ruler, Lightbulb } from "lucide-react";
+import AssetCard from "./AssetCard";
+import { Trash2, Edit3, Package, Calendar, User, Eye, MoreVertical, Search, Filter, X, Hash, Weight, CalendarDays, Plus, Type, Ruler, Lightbulb, RefreshCw } from "lucide-react";
+import PaginationControls from "../PaginationControls/PaginationControls";
 import Input from "@/components/Input/Input";
-// import Select from "@/components/Select/Select";
-// import "./asset-list.css";
-import { assetsApi } from "@/services/api";
+import { assetsApi, organizationsApi } from "@/services/api";
+
+const ITEMS_PER_PAGE = 10;
 
 interface AttributeValue {
   id: string;
@@ -68,6 +70,7 @@ interface NewAsset {
 
 interface AssetListProps {
   assets: Asset[];
+  organization?: { id: string } | null;
   onEdit?: (asset: Asset) => void;
   onDelete?: (asset: Asset) => void;
   onView?: (asset: Asset) => void;
@@ -88,7 +91,8 @@ type FilterToggle = {
 };
 
 export default function AssetList({
-  assets,
+  assets: initialAssets,
+  organization,
   onEdit,
   onDelete,
   onAddAsset,
@@ -104,18 +108,64 @@ export default function AssetList({
     if (onAddAttribute) await onAddAttribute(); // parent will refetch all assets
     if (selectedAsset) await refetchAsset(selectedAsset.id); // update modal asset
   };
+  const [assets, setAssets] = useState<Asset[]>(initialAssets);
   const [searchTerm, setSearchTerm] = useState("");
   // Toggle state for Ativos and Lixeira
-  const [filterToggle, setFilterToggle] = useState<FilterToggle>({ active: true, trash: true });
+  const [filterToggle, setFilterToggle] = useState<FilterToggle>({ active: true, trash: false });
   const [expandedAsset, setExpandedAsset] = useState<string | null>(null);
   const [selectedAsset, setSelectedAsset] = useState<Asset | null>(null);
   const [attributeLoading, setAttributeLoading] = useState(false);
   const [assetLoading, setAssetLoading] = useState(false);
+  const [reloading, setReloading] = useState(false);
   const [showAddAsset, setShowAddAsset] = useState(false);
   const [newAsset, setNewAsset] = useState<NewAsset>({
     name: '',
     description: ''
   });
+  // Pagination state
+  const [page, setPage] = useState(1);
+
+  // Handler to reload all assets for the current organization from backend
+  const handleReloadAssets = async () => {
+    if (!organization?.id) {
+      alert('Nenhuma organização selecionada.');
+      return;
+    }
+    setReloading(true);
+    try {
+      const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+      // Fetch asset list for the org
+      const assetsResp = await organizationsApi.getOrganizationsIdassets({ params: { id: organization.id }, headers: token ? { Authorization: `Bearer ${token}` } : {} });
+      const assetList = assetsResp.data || [];
+      // Fetch each asset's full details (with attributes)
+      const assetsWithAttributes = await Promise.all(
+        assetList.map(async (a: any) => {
+          try {
+            const assetDetailResp = await assetsApi.getAssetsId({ params: { id: a.id }, headers: token ? { Authorization: `Bearer ${token}` } : {} });
+            const asset = assetDetailResp.data;
+            return {
+              ...asset,
+              description: asset?.description ?? "",
+              organizationId: asset?.organizationId ?? "",
+            };
+          } catch (err) {
+            // If fetching details fails, fallback to basic asset info
+            return {
+              ...a,
+              description: a?.description ?? "",
+              organizationId: a?.organizationId ?? "",
+            };
+          }
+        })
+      );
+      setAssets(assetsWithAttributes);
+    } catch (error) {
+      alert('Erro ao recarregar ativos.');
+      console.error(error);
+    } finally {
+      setReloading(false);
+    }
+  };
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("pt-BR", {
@@ -261,6 +311,15 @@ export default function AssetList({
     return filtered;
   }, [assets, searchTerm, filterToggle]);
 
+  // Pagination: slice filteredAssets for current page
+  const totalPages = Math.ceil(filteredAssets.length / ITEMS_PER_PAGE) || 1;
+  const paginatedAssets = filteredAssets.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE);
+
+  // Reset to page 1 if filteredAssets or totalPages change
+  React.useEffect(() => {
+    if (page > totalPages) setPage(1);
+  }, [filteredAssets, totalPages]);
+
   const clearSearch = () => {
     setSearchTerm("");
   };
@@ -274,19 +333,45 @@ export default function AssetList({
   }
 
 
+  // Handler to toggle trashBin state
+  const handleToggleTrashBin = async (asset: Asset) => {
+    // Optimistically update UI
+    setAssets(prev => prev.map(a => a.id === asset.id ? { ...a, trashBin: !a.trashBin } : a));
+    try {
+      await assetsApi.patchAssetsIdtrashBin(
+        { trashBin: !asset.trashBin },
+        { params: { id: asset.id } }
+      );
+    } catch (error) {
+      // Revert on error
+      setAssets(prev => prev.map(a => a.id === asset.id ? { ...a, trashBin: asset.trashBin } : a));
+      alert('Erro ao mover ativo para/da lixeira.');
+      console.error(error);
+    }
+  };
+
   return (
     <>
       <div className="w-full mx-auto">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4">
           <div className="flex items-center gap-4">
             <h3 className="text-xl font-bold text-stuff-dark">Ativos <span className="text-stuff-mid">({assets.length})</span></h3>
             {onAddAsset && (
-              <Button size="sm" palette="success" onClick={handleAddAsset} iconBefore={<Plus size={16} />}>
+              <Button size="sm" palette="success" onClick={handleAddAsset} iconBefore={<Plus size={16} />}> 
                 Novo Ativo
               </Button>
             )}
           </div>
           <div className="flex gap-4 w-full md:w-auto">
+            <Button
+              size="md"
+              onClick={handleReloadAssets}
+              // iconBefore={<RefreshCw size={16} className={reloading ? 'animate-spin' : ''} />}
+              disabled={reloading}
+              className="py-3"
+            >
+              <RefreshCw size={24} className={reloading ? 'animate-spin' : ''} />
+            </Button>
             <div className="relative flex items-center w-full">
               <Input
                 type="text"
@@ -326,7 +411,11 @@ export default function AssetList({
           </div>
         </div>
 
-        {filteredAssets.length === 0 ? (
+        {reloading ? (
+          <div className="flex flex-col items-center justify-center py-12 h-[48vh] border-2 border-t-8 border-stuff-high rounded-2xl w-full bg-white">
+            <Loader label="Recarregando ativos..." />
+          </div>
+        ) : filteredAssets.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-12 bg-white rounded-xl border border-stuff-mid shadow-sm">
             <Package size={48} className="text-stuff-light mb-2" />
             <h3 className="text-lg font-semibold mb-1">Nenhum ativo encontrado</h3>
@@ -340,42 +429,22 @@ export default function AssetList({
             )}
           </div>
         ) : (
-          <div className="flex flex-col gap-4">
-            {filteredAssets.map((asset) => (
-              <div key={asset.id} className={`flex flex-col bg-white border-2 border-b-4 border-black rounded-xl px-6 py-4 shadow-none hover:bg-stuff-light/80 transition cursor-pointer ${asset.trashBin ? 'opacity-60' : ''}`} onClick={() => openAssetModal(asset)}>
-                <div className="flex items-center gap-4">
-                  <div className="flex items-center justify-center w-10 h-10 rounded-full bg-stuff-light border border-stuff-mid">
-                    <Package size={20} className="text-stuff-mid" />
-                  </div>
-                  <div className="flex-1">
-                    <h4 className="text-lg font-bold text-stuff-dark mb-1">{asset.name}</h4>
-                    {showDescription && asset.description && (
-                      <p className="text-stuff-mid text-sm mb-1">{asset.description}</p>
-                    )}
-                    {showCreatedDate && (
-                      <div className="flex flex-wrap gap-4 text-xs text-stuff-mid">
-                        <div className="flex items-center gap-1">
-                          <Calendar size={12} />
-                          <span>Criado em {formatDate(asset.createdAt)}</span>
-                        </div>
-                        {asset.updatedAt !== asset.createdAt && (
-                          <div className="flex items-center gap-1">
-                            <Calendar size={12} />
-                            <span>Atualizado em {formatDate(asset.updatedAt)}</span>
-                          </div>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                  {asset.trashBin && (
-                    <span className="inline-flex items-center gap-1 px-2 py-1 rounded bg-stuff-light text-stuff-mid text-xs font-semibold border border-stuff-mid">
-                      <Trash2 size={12} /> Lixeira
-                    </span>
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
+          <>
+            <div className="flex flex-col p-2 gap-4 border-2 border-t-8 border-stuff-high rounded-2xl w-full overflow-y-auto h-[48vh]">
+              {paginatedAssets.map((asset) => (
+                <AssetCard
+                  key={asset.id}
+                  asset={asset}
+                  onClick={openAssetModal}
+                  showDescription={showDescription}
+                  showCreatedDate={showCreatedDate}
+                  onToggleTrashBin={handleToggleTrashBin}
+                />
+              ))}
+            </div>
+            {/* Pagination Controls */}
+            <PaginationControls page={page} totalPages={totalPages} onPageChange={setPage} />
+          </>
         )}
       </div>
 

@@ -80,7 +80,7 @@ const OrganizationAssetsPage = () => {
 				) : error ? (
 					<div className="text-red-500">{error}</div>
 				) : (
-					<AssetList assets={assets} loading={loading} />
+					<AssetList assets={assets} organization={organization} loading={loading} />
 				)}
 			</main>
 		</div>

@@ -55,18 +55,17 @@
 /* Universal custom scrollbar styling */
 html {
   scrollbar-width: thin;
-  scrollbar-color: var(--color-stuff-mid) var(--color-stuff-white);
+  scrollbar-color: var(--color-stuff-mid) transparent;
 }
 html::-webkit-scrollbar, body::-webkit-scrollbar, *::-webkit-scrollbar {
   width: 8px;
-  background: var(--color-stuff-white);
+  background: transparent !important;
 }
 html::-webkit-scrollbar-thumb, body::-webkit-scrollbar-thumb, *::-webkit-scrollbar-thumb {
   background: var(--color-stuff-mid);
   border-radius: 8px;
-  border: 2px solid var(--color-stuff-white);
 }
 html::-webkit-scrollbar-track, body::-webkit-scrollbar-track, *::-webkit-scrollbar-track {
-  background: var(--color-stuff-white);
+  background: transparent !important;
   border-radius: 8px;
 }

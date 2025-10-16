@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import PaginationControls from "../PaginationControls/PaginationControls";
 import Button from "@/components/Button/Button";
 import Loader from "@/components/Loader/Loader";
 import { ListItem } from "@/components/list";
@@ -110,39 +111,7 @@ const OrganizationList: React.FC<OrganizationListProps> = ({
       )}
 
       {/* Pagination Controls */}
-      {organizations.length > ITEMS_PER_PAGE && (
-        <div className="flex justify-center items-center gap-2 mt-4">
-          <Button
-            size="sm"
-            palette="default"
-            variant="secondary"
-            onClick={() => handlePageChange(page - 1)}
-            disabled={page === 1}
-          >
-            Anterior
-          </Button>
-          {Array.from({ length: totalPages }, (_, i) => (
-            <button
-              key={i + 1}
-              className={`px-2 py-1 rounded ${page === i + 1 ? 'bg-stuff-primary text-white' : 'bg-stuff-gray-50 text-stuff-mid'}`}
-              onClick={() => handlePageChange(i + 1)}
-              disabled={page === i + 1}
-              style={{ minWidth: 32 }}
-            >
-              {i + 1}
-            </button>
-          ))}
-          <Button
-            size="sm"
-            palette="default"
-            variant="secondary"
-            onClick={() => handlePageChange(page + 1)}
-            disabled={page === totalPages}
-          >
-            Próxima
-          </Button>
-        </div>
-      )}
+      <PaginationControls page={page} totalPages={totalPages} onPageChange={handlePageChange} />
 
       <DeleteOrganizationModal
         open={showDeleteModal && !!selectedOrg}

@@ -355,7 +355,7 @@ export default function AssetList({
       <div className="w-full mx-auto">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4">
           <div className="flex items-center gap-4">
-            <h3 className="text-xl font-bold text-stuff-dark">Ativos <span className="text-stuff-mid">({assets.length})</span></h3>
+            <h1 className="text-2xl ml-3 font-extrabold text-stuff-light">ativos <span className="text-stuff-light font-bold">({assets.length})</span></h1>
             {onAddAsset && (
               <Button size="sm" palette="success" onClick={handleAddAsset} iconBefore={<Plus size={16} />}> 
                 Novo Ativo
@@ -381,7 +381,7 @@ export default function AssetList({
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
               {searchTerm && (
-                <button onClick={clearSearch} className="absolute right-3 text-stuff-mid hover:text-stuff-dark cursor-pointer hover:bg-stuff-mid/20 rounded-4xl p-2">
+                <button onClick={clearSearch} className="absolute right-3 text-stuff-mid cursor-pointer hover:bg-stuff-mid/20 rounded-4xl p-2">
                   <X size={16} className="shadow-[0_8px_32px_rgba(0,0,0,0.08)]" />
                 </button>
               )}

@@ -3,9 +3,12 @@
 import React, { useState, useMemo } from "react";
 import Loader from "@/components/Loader/Loader";
 import Button from "../Button/Button";
+import ToggleButton from "../Button/ToggleButton";
 import AddAssetModal from "./AddAssetModal";
 import AssetDetailsModal from "./AssetDetailsModal";
-import { Trash2, Edit3, Package, Calendar, User, Eye, MoreVertical, Search, Filter, X, Hash, Weight, CalendarDays, Plus, Type, Ruler } from "lucide-react";
+import { Trash2, Edit3, Package, Calendar, User, Eye, MoreVertical, Search, Filter, X, Hash, Weight, CalendarDays, Plus, Type, Ruler, Lightbulb } from "lucide-react";
+import Input from "@/components/Input/Input";
+// import Select from "@/components/Select/Select";
 // import "./asset-list.css";
 import { assetsApi } from "@/services/api";
 
@@ -78,7 +81,11 @@ interface AssetListProps {
   showDescription?: boolean;
 }
 
-type FilterType = 'all' | 'active' | 'trash';
+
+type FilterToggle = {
+  active: boolean;
+  trash: boolean;
+};
 
 export default function AssetList({
   assets,
@@ -98,7 +105,8 @@ export default function AssetList({
     if (selectedAsset) await refetchAsset(selectedAsset.id); // update modal asset
   };
   const [searchTerm, setSearchTerm] = useState("");
-  const [filter, setFilter] = useState<FilterType>('all');
+  // Toggle state for Ativos and Lixeira
+  const [filterToggle, setFilterToggle] = useState<FilterToggle>({ active: true, trash: true });
   const [expandedAsset, setExpandedAsset] = useState<string | null>(null);
   const [selectedAsset, setSelectedAsset] = useState<Asset | null>(null);
   const [attributeLoading, setAttributeLoading] = useState(false);
@@ -233,22 +241,25 @@ export default function AssetList({
 
   const filteredAssets = useMemo(() => {
     let filtered = assets;
-
-    if (filter === 'active') {
-      filtered = filtered.filter(asset => !asset.trashBin);
-    } else if (filter === 'trash') {
-      filtered = filtered.filter(asset => asset.trashBin);
+    // If both toggles are on, show all ("Todos")
+    if (!(filterToggle.active && filterToggle.trash)) {
+      if (filterToggle.active && !filterToggle.trash) {
+        filtered = filtered.filter(asset => !asset.trashBin);
+      } else if (!filterToggle.active && filterToggle.trash) {
+        filtered = filtered.filter(asset => asset.trashBin);
+      } else if (!filterToggle.active && !filterToggle.trash) {
+        // If both are off, show all (or could show none)
+        filtered = [];
+      }
     }
-
     if (searchTerm) {
       filtered = filtered.filter(asset =>
         asset.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         asset.description.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
-
     return filtered;
-  }, [assets, searchTerm, filter]);
+  }, [assets, searchTerm, filterToggle]);
 
   const clearSearch = () => {
     setSearchTerm("");
@@ -275,33 +286,42 @@ export default function AssetList({
               </Button>
             )}
           </div>
-          <div className="flex gap-2 w-full md:w-auto">
-            <div className="relative flex items-center w-full md:w-64">
-              <Search size={16} className="absolute left-3 text-stuff-mid" />
-              <input
+          <div className="flex gap-4 w-full md:w-auto">
+            <div className="relative flex items-center w-full">
+              <Input
                 type="text"
-                placeholder="Buscar ativos..."
+                icon={<Search size={16} />}
+                placeholder="busque ativos"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-9 pr-10 py-2 rounded-lg border border-stuff-mid bg-white text-stuff-dark w-full focus:ring-2 focus:ring-stuff-primary outline-none"
               />
               {searchTerm && (
-                <button onClick={clearSearch} className="absolute right-2 text-stuff-mid hover:text-stuff-dark">
-                  <X size={16} />
+                <button onClick={clearSearch} className="absolute right-3 text-stuff-mid hover:text-stuff-dark cursor-pointer hover:bg-stuff-mid/20 rounded-4xl p-2">
+                  <X size={16} className="shadow-[0_8px_32px_rgba(0,0,0,0.08)]" />
                 </button>
               )}
             </div>
             <div className="flex items-center gap-2">
-              <Filter size={16} className="text-stuff-mid" />
-              <select
-                value={filter}
-                onChange={(e) => setFilter(e.target.value as FilterType)}
-                className="rounded-lg border border-stuff-mid bg-white text-stuff-dark px-2 py-2 focus:ring-2 focus:ring-stuff-primary outline-none"
+              <ToggleButton
+                pressed={!filterToggle.active}
+                size="md"
+                palette="primary"
+                className="py-3"
+                onClick={() => setFilterToggle(ft => ({ ...ft, active: !ft.active }))}
+                aria-label="Ativos"
               >
-                <option value="all">Todos</option>
-                <option value="active">Ativos</option>
-                <option value="trash">Lixeira</option>
-              </select>
+                <Lightbulb size={24} />
+              </ToggleButton>
+              <ToggleButton
+                pressed={!filterToggle.trash}
+                size="md"
+                palette="danger"
+                onClick={() => setFilterToggle(ft => ({ ...ft, trash: !ft.trash }))}
+                className="py-3"
+                aria-label="Lixeira"
+              >
+                <Trash2 size={24} />
+              </ToggleButton>
             </div>
           </div>
         </div>
@@ -311,7 +331,7 @@ export default function AssetList({
             <Package size={48} className="text-stuff-light mb-2" />
             <h3 className="text-lg font-semibold mb-1">Nenhum ativo encontrado</h3>
             <p className="text-stuff-mid mb-4">
-              {searchTerm || filter !== 'all'
+              {searchTerm || !(filterToggle.active && filterToggle.trash)
                 ? "Nenhum ativo corresponde aos critérios de busca."
                 : emptyMessage}
             </p>

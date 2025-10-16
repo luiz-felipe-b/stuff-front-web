@@ -3,7 +3,7 @@ import Button from "@/components/Button/Button";
 import Loader from "@/components/Loader/Loader";
 import { ListItem } from "@/components/list";
 import DeleteOrganizationModal from "@/components/OrganizationList/DeleteOrganizationModal";
-import { Search, Trash } from "lucide-react";
+import { Building, Search, Trash } from "lucide-react";
 import Input from "@/components/Input/Input";
 
 interface Organization {
@@ -82,7 +82,7 @@ const OrganizationList: React.FC<OrganizationListProps> = ({
         paginatedOrgs.map((org) => (
           <div
             key={org.id}
-            className="relative flex flex-col bg-white border-2 border-stuff-mid rounded-xl shadow-[8px_8px_0_0_rgba(0,0,0,0.1)] p-5 cursor-pointer hover:bg-stuff-high/20 transition group"
+            className="relative bg-white border-2 border-stuff-mid rounded-xl shadow-[8px_8px_0_0_rgba(0,0,0,0.1)] p-5 cursor-pointer hover:bg-stuff-high/20 transition group flex"
             onClick={() => onSelect(org)}
           >
             {/* <Button
@@ -97,9 +97,14 @@ const OrganizationList: React.FC<OrganizationListProps> = ({
                 onDelete(org);
               }}
             /> */}
-            <span className="font-semibold text-xl text-stuff-black truncate mb-1">{org.name}</span>
-            <span className="text-stuff-dark text-base truncate mb-2">{org.description}</span>
-            <span className="text-xs text-stuff-mid">ID: {org.id}</span>
+            <Building
+              className="mr-4 text-stuff-mid"
+            />
+            <div className="flex flex-col">
+              <span className="font-semibold text-xl text-stuff-black truncate mb-1">{org.name}</span>
+              <span className="text-stuff-dark text-base truncate mb-2">{org.description}</span>
+              <span className="text-xs text-stuff-mid">ID: {org.id}</span>
+            </div>
           </div>
         ))
       )}

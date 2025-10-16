@@ -1,6 +1,7 @@
 "use client";
 
 import React, { forwardRef } from 'react';
+import clsx from 'clsx';
 import { ButtonProps } from './types/Button.types';
 // Tailwind migration: removed button.scss import
 
@@ -41,23 +42,20 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(({
     danger: "bg-danger-light text-stuff-white border-danger-base",
     warning: "bg-warning-light text-stuff-white border-warning-base",
   };
-  const iconOnly = isIconOnly ? "p-2" : "";
-  const disabledClass = disabled ? "opacity-60 cursor-not-allowed border-b-2 border-t-4 border-l-2 border-r-2" : "border-b-4 border-t-2 border-l-2 border-r-2 cursor-pointer active:border-b-2 active:border-t-4";
-  const loadingClass = loading ? "opacity-60 cursor-wait" : "";
-  const fullWidthClass = fullWidth ? "w-full" : "";
-
   // Compose classes
-  let classNames = [
+  const classNames = clsx(
     base,
     sizeMap[size],
     paletteMap[palette],
     variantMap[variant],
-    iconOnly,
-    loadingClass,
-    fullWidthClass,
-    className,
-    disabledClass,
-  ].filter(Boolean).join(" ");
+    isIconOnly && "p-2",
+    loading && "opacity-60 cursor-wait",
+    fullWidth && "w-full",
+    disabled
+      ? "opacity-60 cursor-not-allowed border-b-2 border-t-4 border-l-2 border-r-2"
+      : "border-b-4 border-t-2 border-l-2 border-r-2 cursor-pointer active:border-b-2 active:border-t-4",
+    className
+  );
 
   const content = (
     <span className="flex items-center gap-2">

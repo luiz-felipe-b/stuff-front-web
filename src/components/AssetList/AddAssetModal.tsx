@@ -25,7 +25,7 @@ const AddAssetModal: React.FC<AddAssetModalProps> = ({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-stuff-black/40" onClick={onCancel}>
       <div className="bg-stuff-white rounded-2xl shadow-2xl w-full max-w-md p-6 relative animate-fadeIn" onClick={e => e.stopPropagation()}>
-        <button className="absolute top-4 right-4 text-stuff-mid hover:text-stuff-dark transition-colors" onClick={onCancel}>
+        <button className="absolute top-4 right-4 text-stuff-mid hover:text-stuff-dark transition-colors cursor-pointer" onClick={onCancel}>
           <X size={24} />
         </button>
         <div className="flex items-center gap-3 mb-4">

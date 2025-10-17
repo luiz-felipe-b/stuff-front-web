@@ -15,7 +15,7 @@ const HeaderNavLink: React.FC<HeaderNavLinkProps> = ({ href, icon: Icon, childre
     return (
       <span
         className={`flex flex-col items-center px-3 pt-2 rounded-lg font-medium text-base transition-colors opacity-60 cursor-not-allowed hover:bg-transparent
-          ${active ? "text-stuff-mid" : "text-stuff-gray-100"}
+          ${active ? "text-stuff-light" : "text-stuff-gray-100"}
         `}
         tabIndex={-1}
         aria-disabled="true"
@@ -28,7 +28,7 @@ const HeaderNavLink: React.FC<HeaderNavLinkProps> = ({ href, icon: Icon, childre
     <Link
       href={href}
       className={`flex flex-col text-center justify-center items-center px-3 pt-2 rounded-lg font-medium text-base transition-colors leading-loose hover:bg-stuff-high/40 
-        ${active ? "text-stuff-mid" : "text-stuff-gray-200"}
+        ${active ? "text-stuff-light" : "text-stuff-gray-200"}
       `}
       tabIndex={0}
       prefetch={false}

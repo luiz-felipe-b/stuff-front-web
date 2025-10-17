@@ -24,7 +24,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(({
   const isIconOnly = !children && (iconBefore || iconAfter);
 
   // Tailwind classes for variants, palettes, sizes
-  const base = "inline-flex items-center justify-center font-semibold transition focus:outline-none disabled:opacity-60 rounded-2xl shadow-[2px_4px_0_0_rgba(0,0,0,0.1)] border active:shadow-sm active:translate-y-[2px]";
+  const base = "inline-flex items-center justify-center font-semibold transition focus:outline-none disabled:opacity-60 rounded-2xl shadow-[2px_4px_0_0_rgba(0,0,0,0.1)] border active:shadow-none active:translate-y-[2px]";
   const sizeMap = {
     sm: "text-sm px-3 py-1.5",
     md: "text-base px-4 py-2",

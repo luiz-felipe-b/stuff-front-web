@@ -24,8 +24,9 @@ export default function Dashboard() {
   if (!organization) return null;
 
   return (
-    <div className="bg-[url('/pattern_faded.png')] bg-repeat bg-[length:98px_98px]">
-      <main className="min-h-screen flex flex-col items-center justify-start px-4">
+    <>
+      {/* Header com mesmo fundo do dashboard */}
+      <main className="min-h-screen flex flex-col items-center justify-start px-4 bg-[url('/pattern_faded.png')] bg-repeat bg-[length:98px_98px]">
         <Header activeTab="home" />
         <section className="w-full bg-stuff-white rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.08)] flex flex-col items-center py-10 px-6 md:px-16">
           <h1 className="text-3xl font-bold text-stuff-mid mb-2 text-center">
@@ -42,6 +43,6 @@ export default function Dashboard() {
           </div>
         </section>
       </main>
-    </div>
+    </>
   );
 }

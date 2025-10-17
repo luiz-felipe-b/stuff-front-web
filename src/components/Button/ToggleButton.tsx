@@ -33,10 +33,10 @@ const ToggleButton = React.forwardRef<HTMLButtonElement, ToggleButtonProps>(
                 type="button"
                 aria-pressed={pressed}
                 className={clsx(
-                    "inline-flex items-center justify-center font-semibold transition focus:outline-none disabled:opacity-60 rounded-2xl shadow-[2px_4px_0_0_rgba(0,0,0,0.1)] border active:shadow-sm active:translate-y-[2px]",
+                    "inline-flex items-center justify-center font-semibold transition focus:outline-none disabled:opacity-60 rounded-2xl border active:shadow-none active:translate-y-[2px]",
                     paletteMap[palette],
                     sizeMap[size],
-                    pressed ? "border-b-2 border-t-4 border-l-2 border-r-2 opacity-60" : "border-b-4 border-t-2 border-l-2 border-r-2",
+                    pressed ? "border-b-2 border-t-4 border-l-2 border-r-2 opacity-60 shadow-none" : "border-b-4 border-t-2 border-l-2 border-r-2 shadow-[2px_4px_0_0_rgba(0,0,0,0.1)]",
                     disabled
                         ? "opacity-60 cursor-not-allowed border-b-2 border-t-4 border-l-2 border-r-2"
                         : "cursor-pointer active:border-b-2 active:border-t-4",

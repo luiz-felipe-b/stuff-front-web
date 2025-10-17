@@ -35,12 +35,18 @@ const LoginForm: React.FC<LoginFormProps> = ({
   React.useEffect(() => {
     if (error) {
       toast.error(error);
-    } 
+    }
   }, [error]);
+
+  React.useEffect(() => {
+    if (success) {
+      toast.success("login feito!");
+    }
+  }, [success]);
 
   return (
     <form onSubmit={onSubmit} className="w-full h-full font-onest flex flex-col gap-6">
-      {success && <Alert type="success">Login bem-sucedido! Redirecionando...</Alert>}
+      {/* Success toast is now handled via useEffect above */}
       <Input
         type="email"
         placeholder="seu email"

@@ -432,7 +432,7 @@ const AssetDetailsModal: React.FC<AssetDetailsModalProps> = ({
               {asset.description && <p className="text-stuff-mid text-sm mt-1">{asset.description}</p>}
             </div>
           </div>
-          <button className="p-2 rounded-full hover:bg-stuff-gray-50 text-stuff-mid hover:text-stuff-dark transition-colors" onClick={onClose} aria-label="Fechar">
+          <button className="p-2 rounded-full hover:bg-stuff-gray-50 text-stuff-mid hover:text-stuff-dark transition-colors cursor-pointer" onClick={onClose} aria-label="Fechar">
             <X size={24} />
           </button>
         </div>

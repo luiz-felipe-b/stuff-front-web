@@ -112,7 +112,7 @@ const AssetCard: React.FC<AssetCardProps> = ({ asset, onClick, showDescription =
             <Button
               size="sm"
               palette="success"
-              title="Restaurar"
+              title="restaurar"
               onClick={handleRestoreClick}
               className="py-3 px-3"
             >
@@ -122,7 +122,7 @@ const AssetCard: React.FC<AssetCardProps> = ({ asset, onClick, showDescription =
             <Button
               size="sm"
               palette="danger"
-              title="Mover para lixeira"
+              title="mover para lixeira"
               onClick={handleTrashClick}
               className="py-3 px-3"
             >

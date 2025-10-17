@@ -23,32 +23,17 @@ const LoginPage: React.FC = () => {
     setLoading(true);
 
     try {
-      console.log('LOGIN SUBMIT', { email, password });
-      // if (
-      //   email.trim() === process.env.NEXT_PUBLIC_ADMIN_EMAIL &&
-      //   password.trim() === process.env.NEXT_PUBLIC_ADMIN_PASSWORD
-      // ) {
-      //   setSuccess(true);
-      //   setTimeout(() => {
-      //     router.push("/pages/admin");
-      //   }, 1500);
-      //   return;
-      // }
-
       if (!email || !password) {
-        setError("Por favor, preencha todos os campos");
+        setError("por favor, preencha todos os campos");
         setLoading(false);
         return;
       }
 
-
-      // 1. Login via Zodios endpoint
       await authApi.postAuthlogin({
         email: email.trim(),
         password: password.trim(),
       });
 
-      // 2. Buscar dados do usuário pelo endpoint Zodios
       const userResponse = await userApi.getUsersIdentifier({ params: { identifier: email.trim() } });
       const userData = userResponse.data;
       const userId = userData.id;
@@ -57,36 +42,33 @@ const LoginPage: React.FC = () => {
       const lastName = userData.lastName;
 
       if (!userId || !username) {
-        setError("Não foi possível obter os dados do usuário.");
+        setError("não foi possível obter os dados do usuário.");
         setLoading(false);
         return;
       }
 
-      // Salva no contexto global
       setUser({ id: userId, username, firstName, lastName });
 
       localStorage.setItem("userId", userId);
       setSuccess(true);
 
-      setTimeout(() => {
-        router.push(`/select-organization`);
-      }, 2000);
+      router.push(`/organization`);
     } catch (error: any) {
-      console.error("Erro no login:", error);
+      console.error("erro no login:", error);
 
       if (error.response) {
         switch (error.response.status) {
           case 401:
-            setError("Credenciais inválidas. Por favor, tente novamente.");
+            setError("credenciais inválidas. tente novamente.");
             break;
           case 404:
-            setError("Usuário não encontrado.");
+            setError("usuário não encontrado.");
             break;
           default:
-            setError("Ocorreu um erro durante o login. Tente novamente.");
+            setError("ocorreu um erro durante o login. tente novamente.");
         }
       } else {
-        setError(error.message || "Erro desconhecido durante o login");
+        setError(error.message || "erro desconhecido durante o login");
       }
     } finally {
       setLoading(false);

@@ -7,7 +7,7 @@ import ToggleButton from "../Button/ToggleButton";
 import AddAssetModal from "./AddAssetModal";
 import AssetDetailsModal from "./AssetDetailsModal";
 import AssetCard from "./AssetCard";
-import { Trash2, Edit3, Package, Calendar, User, Eye, MoreVertical, Search, Filter, X, Hash, Weight, CalendarDays, Plus, Type, Ruler, Lightbulb, RefreshCw } from "lucide-react";
+import { Trash2, Edit3, Package, Calendar, User, Eye, MoreVertical, Search, Filter, X, Hash, Weight, CalendarDays, Plus, Type, Ruler, Lightbulb, RefreshCw, CircleHelp } from "lucide-react";
 import PaginationControls from "../PaginationControls/PaginationControls";
 import Input from "@/components/Input/Input";
 import { assetsApi, organizationsApi } from "@/services/api";
@@ -367,6 +367,7 @@ export default function AssetList({
               size="md"
               onClick={handleReloadAssets}
               // iconBefore={<RefreshCw size={16} className={reloading ? 'animate-spin' : ''} />}
+              title='recarregar ativos'
               disabled={reloading}
               className="py-3"
             >
@@ -391,6 +392,7 @@ export default function AssetList({
                 pressed={!filterToggle.active}
                 size="md"
                 palette="primary"
+                title={filterToggle.active ? "ocultar ativos fora da lixeira" : "mostrar ativos fora da lixeira"}
                 className="py-3"
                 onClick={() => setFilterToggle(ft => ({ ...ft, active: !ft.active }))}
                 aria-label="Ativos"
@@ -401,6 +403,7 @@ export default function AssetList({
                 pressed={!filterToggle.trash}
                 size="md"
                 palette="danger"
+                title={filterToggle.trash ? "ocultar ativos na lixeira" : "mostrar ativos na lixeira"}
                 onClick={() => setFilterToggle(ft => ({ ...ft, trash: !ft.trash }))}
                 className="py-3"
                 aria-label="Lixeira"
@@ -416,8 +419,8 @@ export default function AssetList({
             <Loader label="Recarregando ativos..." />
           </div>
         ) : filteredAssets.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-12 bg-white rounded-xl border border-stuff-mid shadow-sm">
-            <Package size={48} className="text-stuff-light mb-2" />
+          <div className="flex flex-col items-center justify-center py-12 h-[48vh] border-2 border-t-8 border-stuff-high rounded-2xl w-full bg-white">
+            <CircleHelp size={48} className="text-stuff-light mb-2" />
             <h3 className="text-lg font-semibold mb-1">Nenhum ativo encontrado</h3>
             <p className="text-stuff-mid mb-4">
               {searchTerm || !(filterToggle.active && filterToggle.trash)

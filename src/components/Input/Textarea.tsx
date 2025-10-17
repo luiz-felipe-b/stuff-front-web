@@ -9,7 +9,7 @@ export interface TextareaProps extends React.TextareaHTMLAttributes<HTMLTextArea
 }
 
 const paletteMap: Record<string, string> = {
-  default: "border-stuff-gray-100 bg-stuff-white text-stuff-black focus:border-stuff-mid focus:text-stuff-mid",
+  default: "border-stuff-gray-100 bg-stuff-white text-stuff-black focus:border-stuff-light focus:text-stuff-light",
   success: "border-success-base bg-stuff-white text-stuff-black focus:border-success-base focus:text-success-base",
   danger: "border-danger-base bg-stuff-white text-stuff-black focus:border-danger-base focus:text-danger-base",
   warning: "border-warning-base bg-stuff-white text-stuff-black focus:border-warning-base focus:text-warning-base",

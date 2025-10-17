@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import PaginationControls from "../PaginationControls/PaginationControls";
 import Button from "@/components/Button/Button";
 import Loader from "@/components/Loader/Loader";
-import { ListItem } from "@/components/list";
+import { ListItem } from "@/components/List";
 import DeleteOrganizationModal from "@/components/OrganizationList/DeleteOrganizationModal";
 import { Building, Search, Trash } from "lucide-react";
 import Input from "@/components/Input/Input";

@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { assetsApi, organizationsApi } from "@/services/api";
-import Header from "@/components/header/header";
+import Header from "@/components/Header/header";
 import { useUser } from "@/context/UserContext";
 import { useSelectedOrganization } from "@/context/SelectedOrganizationContext";
 import "./style.css";

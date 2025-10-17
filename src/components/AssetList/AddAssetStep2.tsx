@@ -1,28 +1,22 @@
 import React from "react";
 import Button from "../Button/Button";
-import Input from "../Input/Input";
-import Select from "../Select/Select";
-import Switch from "../Switch/Switch";
-import Textarea from "../Input/Textarea";
 import ToggleButton from "../Button/ToggleButton";
-import { Trash2, Pencil, Plus, Filter, CircleHelp } from "lucide-react";
+import { Trash2, Pencil, Plus, Filter, CircleHelp, Calendar, CheckSquare, FileText, Hash, ListChecks, Package, Radio, Tag, Timer, ToggleLeft } from "lucide-react";
+import Input from "../Input/Input";
+import { getAttributeIcon } from "@/util/getAttributeIcon";
 
 export interface Attribute {
   name: string;
   type: string;
   value: any;
-  options?: string[];
   unit?: string;
   timeUnit?: string;
-  copied?: boolean;
-  newOption?: string;
 }
 
 export interface AddAssetStep2Props {
   loading: boolean;
   attributes: Attribute[];
   onAddAttribute: () => void;
-  onAttributeChange: (idx: number, field: string, value: any) => void;
   onRemoveAttribute: (idx: number) => void;
   onCancel: () => void;
   onBack: () => void;
@@ -33,7 +27,6 @@ const AddAssetStep2: React.FC<AddAssetStep2Props> = ({
   loading,
   attributes,
   onAddAttribute,
-  onAttributeChange,
   onRemoveAttribute,
   onCancel,
   onBack,
@@ -42,23 +35,23 @@ const AddAssetStep2: React.FC<AddAssetStep2Props> = ({
   const [search, setSearch] = React.useState("");
   const [typeFilter, setTypeFilter] = React.useState<string[]>([]);
   const [showTypeMenu, setShowTypeMenu] = React.useState(false);
-  // Helper to remove accents
+
   const normalizeStr = (str: string) =>
     str.normalize("NFD").replace(/\p{Diacritic}/gu, "").toLowerCase();
-  // Attribute types for filter buttons
+
   const typeOptions = [
-  { value: "text", label: "Texto" },
-  { value: "number", label: "Numérico" },
-  { value: "boolean", label: "Booleano" },
-  { value: "date", label: "Data" },
-  { value: "metric", label: "Métrica" },
-  { value: "select", label: "Seleção" },
-  { value: "multiselection", label: "Seleção múltipla" },
-  { value: "timemetric", label: "Tempo métrico" },
-  { value: "file", label: "Arquivo" },
-  { value: "rfid", label: "RFID" },
+    { value: "text", label: "texto" },
+    { value: "number", label: "numérico" },
+    { value: "boolean", label: "booleano" },
+    { value: "date", label: "data" },
+    { value: "metric", label: "métrica" },
+    { value: "select", label: "seleção" },
+    { value: "multiselection", label: "seleção múltipla" },
+    { value: "timemetric", label: "tempo métrico" },
+    { value: "file", label: "arquivo" },
+    { value: "rfid", label: "rfid" },
   ];
-  // Filter attributes by name (accent-insensitive) and type
+  // Filter attributes by name
   const filteredAttributes = attributes.filter(attr => {
     const query = normalizeStr(search.trim());
     const matchesName = !query || normalizeStr(attr.name).includes(query);
@@ -74,14 +67,13 @@ const AddAssetStep2: React.FC<AddAssetStep2Props> = ({
         </div>
         <div className="mb-3 flex items-center gap-2">
           <Input
-            type="text"
             value={search}
             onChange={e => setSearch(e.target.value)}
             placeholder="Buscar por nome do atributo"
-            className="w-1/2"
+            className="w-1/2 border rounded px-2 py-1"
           />
           <Button type="button" palette="success" size="sm" className="py-3" onClick={onAddAttribute}><Plus /></Button>
-          <ToggleButton
+                    <ToggleButton
             pressed={!showTypeMenu}
             onClick={() => setShowTypeMenu(v => !v)}
             title={showTypeMenu ? "esconder filtros" : "mostrar filtros"}
@@ -111,295 +103,176 @@ const AddAssetStep2: React.FC<AddAssetStep2Props> = ({
             ))}
           </div>
         )}
-  <div className="h-[48vh] overflow-y-auto custom-scrollbar border-2 border-t-8 border-stuff-light rounded-2xl w-full bg-stuff-white p-2">
-            {filteredAttributes.length === 0 && (
-              <div className="flex flex-col items-center justify-center h-full w-full">
-                <CircleHelp size={48} className="text-stuff-light mb-2" />
-                <h3 className="text-lg font-semibold mb-1">Nenhum ativo encontrado</h3>
+        <div className="h-[48vh] overflow-y-auto custom-scrollbar border-2 border-t-8 border-stuff-light rounded-2xl w-full bg-stuff-white p-2">
+          <div className="flex font-semibold text-stuff-light rounded px-2 py-2 mb-2">
+            <div className="w-1/3">nome</div>
+            <div className="w-1/3">tipo</div>
+            <div className="w-1/3">valor</div>
+            <div className="w-1/6 text-center">ações</div>
           </div>
-            )}
-            {filteredAttributes.map((attr, idx) => (
-                <div key={idx} className="flex gap-2 items-center mb-2">
-                <Input
-                    type="text"
-                    value={attr.name}
-                    placeholder="Nome do atributo"
-                    className="w-1/3"
-                    readOnly
-                />
-                <Select
-                    options={[
-                    { value: "text", label: "Texto" },
-                    { value: "number", label: "Numérico" },
-                    { value: "boolean", label: "Booleano" },
-                    { value: "date", label: "Data" },
-                    { value: "metric", label: "Métrica" },
-                    { value: "select", label: "Seleção" },
-                    { value: "multiselection", label: "Seleção múltipla" },
-                    { value: "timemetric", label: "Tempo métrico" },
-                    { value: "file", label: "Arquivo" },
-                    { value: "rfid", label: "RFID" },
-                    ]}
-                    value={attr.type}
-                    className="w-1/4"
-                    disabled
-                />
-                {/* Render input based on type */}
-                {attr.type === "text" && (
-                    <Input
-                    type="text"
-                    value={attr.value}
-                    placeholder="Valor"
-                    className="w-1/3"
-                    readOnly
-                    />
-                )}
-                {attr.type === "number" && (
-                    <Input
-                    type="number"
-                    value={attr.value}
-                    placeholder="Valor"
-                    className="w-1/3"
-                    readOnly
-                    />
-                )}
-                {attr.type === "date" && (
-                    <Input
-                    type="date"
-                    value={(() => {
-                        if (typeof attr.value === "string") {
-                        // If value is a placeholder, show empty
-                        if (attr.value.trim() === "dd/mm/aaaa") return "";
-                        // If value is ISO or valid date, format as yyyy-mm-dd
-                        const d = new Date(attr.value);
-                        if (!isNaN(d.getTime())) {
-                            return d.toISOString().slice(0, 10);
-                        }
-                        // Otherwise, show as is
-                        return attr.value;
-                        }
-                        return attr.value ? String(attr.value) : "";
-                    })()}
-                    placeholder="Valor"
-                    className="w-1/3"
-                    readOnly
-                    />
-                )}
-                {attr.type === "boolean" && (
-                    <div className="w-1/3 flex items-center justify-center">
-                    <Switch
-                        checked={!!attr.value}
-                        label={attr.value ? "Sim" : "Não"}
-                        disabled
-                        onChange={() => {}}
-                    />
-                    </div>
-                )}
-                {attr.type === "metric" && (
-                    <div className="w-1/3 flex gap-2">
-                    <Input
-                        type="number"
-                        value={attr.value}
-                        placeholder="Valor"
-                        className="w-2/3"
-                        readOnly
-                    />
-                    <Select
-                        options={[
-                        { value: "ton", label: "Tonelada" },
-                        { value: "kilogram", label: "Quilograma" },
-                        { value: "gram", label: "Grama" },
-                        { value: "kilometer", label: "Quilômetro" },
-                        { value: "meter", label: "Metro" },
-                        { value: "centimeter", label: "Centímetro" },
-                        { value: "square_meter", label: "Metro quadrado" },
-                        { value: "cubic_meter", label: "Metro cúbico" },
-                        { value: "mile", label: "Milha" },
-                        { value: "feet", label: "Pé" },
-                        { value: "degree", label: "Grau" },
-                        { value: "liter", label: "Litro" },
-                        ]}
-                        value={attr.unit || ""}
-                        className="w-1/3"
-                        disabled
-                    />
-                    </div>
-                )}
-                {attr.type === "timemetric" && (
-                    <Input
-                    type="text"
-                    value={(() => {
-                        // Extract value (scale)
-                        let scale = "";
-                        if (attr.value && typeof attr.value === "object" && attr.value !== null) {
-                        scale = attr.value.scale ?? attr.value.value ?? "";
-                        } else if (typeof attr.value === "number" || typeof attr.value === "string") {
-                        scale = String(attr.value);
-                        }
-                        // Extract unit: value.unit, attr.unit, attr.timeUnit
-                        let unit = "";
-                        if (attr.value && typeof attr.value === "object" && attr.value !== null && typeof attr.value.unit === "string" && attr.value.unit) {
-                        unit = attr.value.unit;
-                        } else if (typeof attr.unit === "string" && attr.unit) {
-                        unit = attr.unit;
-                        } else if (typeof attr.timeUnit === "string" && attr.timeUnit) {
-                        unit = attr.timeUnit;
-                        }
-                        // Map unit to label
-                        const unitLabels: Record<string, string> = {
-                        second: "segundos",
-                        segundos: "segundos",
-                        minute: "minutos",
-                        minutos: "minutos",
-                        hour: "horas",
-                        horas: "horas",
-                        day: "dias",
-                        dias: "dias",
-                        week: "semanas",
-                        semanas: "semanas",
-                        month: "meses",
-                        meses: "meses",
-                        year: "anos",
-                        anos: "anos",
-                        };
-                        const unitLabel = unitLabels[unit] || unit || "";
-                        return scale && unitLabel ? `${scale} ${unitLabel}`.trim() : scale;
-                    })()}
-                    placeholder="Escala e unidade"
-                    className="w-1/2"
-                    readOnly
-                    />
-                )}
-                {attr.type === "select" && (
-                    attr.copied && Array.isArray(attr.options) ? (
-                    <Select
-                        options={[{ value: '', label: 'Selecione...' }, ...attr.options.map((opt: string) => ({ value: opt, label: opt }))]}
-                        value={attr.value || ''}
-                        className="w-1/3"
-                        disabled
-                    />
-                    ) : (
-                    <div className="w-1/3 flex flex-col gap-1">
-                        <div className="flex gap-1 mb-1">
-                        <Input
-                            type="text"
-                            value={attr.newOption || ''}
-                            placeholder="Nova opção"
-                            className="flex-1"
-                            readOnly
-                        />
-                        <Button
-                            type="button"
-                            palette="success"
-                            size="sm"
-                            disabled
-                        >+</Button>
-                        </div>
-                        <div className="flex flex-wrap gap-1 mb-1">
-                        {Array.isArray(attr.options) && attr.options.map((opt: string, optIdx: number) => (
-                            <span key={optIdx} className="bg-stuff-light/20 px-2 py-1 rounded flex items-center gap-1">
-                            {opt}
-                            </span>
-                        ))}
-                        </div>
-                        <Select
-                        options={Array.isArray(attr.options)
-                            ? [{ value: '', label: 'Selecione...' }, ...attr.options.map((opt: string) => ({ value: opt, label: opt }))]
-                            : [{ value: '', label: 'Selecione...' }]}
-                        value={attr.value || ''}
-                        className="w-full"
-                        disabled
-                        />
-                    </div>
-                    )
-                )}
-                {attr.type === "multiselection" && (
-                    attr.copied && Array.isArray(attr.options) ? (
-                    <Select
-                        options={attr.options.map((opt: string) => ({ value: opt, label: opt }))}
-                        value={Array.isArray(attr.value) ? attr.value : []}
-                        className="w-1/3"
-                        multiple
-                        disabled
-                    />
-                    ) : (
-                    <div className="w-1/3 flex flex-col gap-1">
-                        <div className="flex gap-1 mb-1">
-                        <Input
-                            type="text"
-                            value={attr.newOption || ''}
-                            placeholder="Nova opção"
-                            className="flex-1"
-                            readOnly
-                        />
-                        <Button
-                            type="button"
-                            palette="success"
-                            size="sm"
-                            disabled
-                        >+</Button>
-                        </div>
-                        <div className="flex flex-wrap gap-1 mb-1">
-                        {Array.isArray(attr.options) && attr.options.map((opt: string, optIdx: number) => (
-                            <span key={optIdx} className="bg-stuff-light/20 px-2 py-1 rounded flex items-center gap-1">
-                            {opt}
-                            </span>
-                        ))}
-                        </div>
-                        <Select
-                        options={Array.isArray(attr.options)
-                            ? attr.options.map((opt: string) => ({ value: opt, label: opt }))
-                            : []}
-                        value={Array.isArray(attr.value) ? attr.value : []}
-                        className="w-full"
-                        multiple
-                        disabled
-                        />
-                    </div>
-                    )
-                )}
-                {attr.type === "file" && (
-                    <Input
-                    type="file"
-                    className="w-1/3"
-                    disabled
-                    />
-                )}
-                {attr.type === "rfid" && (
-                    <Input
-                    type="text"
-                    value={attr.value}
-                    placeholder="RFID"
-                    className="w-1/3"
-                    readOnly
-                    />
-                )}
-                <Button className="py-2" type="button" palette="danger" size="sm" onClick={() => onRemoveAttribute(idx)}><Trash2 /></Button>
-                {attr.copied && (
-                    <Button
+          {filteredAttributes.length === 0 ? (
+            <div className="flex flex-col items-center justify-center h-full w-full">
+              <CircleHelp size={48} className="text-stuff-light mb-2" />
+              <h3 className="text-lg font-semibold mb-1">nenhum ativo encontrado</h3>
+            </div>
+          ) : (
+            filteredAttributes.map((attr, idx) => (
+              <div key={idx} className="flex items-center gap-2 mb-2 px-4 py-2 border-b-4 border-2 rounded-2xl border-stuff-light shadow-[4px_4px_0_0_rgba(0,0,0,0.1)]">
+                <div className="w-1/3 truncate" title={attr.name}>{attr.name}</div>
+                <div className="w-1/3 flex gap-2 items-center truncate" title={attr.type}>{getAttributeIcon(attr.type)}{(() => {
+                  const typeLabels: Record<string, string> = {
+                    text: "texto",
+                    number: "numérico",
+                    boolean: "booleano",
+                    date: "data",
+                    metric: "métrica",
+                    select: "seleção",
+                    multiselection: "seleção múltipla",
+                    timemetric: "tempo métrico",
+                    file: "arquivo",
+                    rfid: "rfid",
+                  };
+                  return typeLabels[attr.type] || attr.type;
+                })()}</div>
+                <div className="w-1/3 truncate" title={(() => {
+                  if (attr.type === "metric") {
+                    const scale = attr.value ?? "";
+                    const unitLabels: Record<string, string> = {
+                      ton: "tonelada",
+                      kilogram: "quilograma",
+                      gram: "grama",
+                      kilometer: "quilômetro",
+                      meter: "metro",
+                      centimeter: "centímetro",
+                      square_meter: "metro quadrado",
+                      cubic_meter: "metro cúbico",
+                      mile: "milha",
+                      feet: "pé",
+                      degree: "grau",
+                      liter: "litro",
+                    };
+                    const unit = attr.unit ? (unitLabels[attr.unit] || attr.unit) : "";
+                    return `${scale} ${unit}`.trim();
+                  }
+                  if (attr.type === "timemetric") {
+                    let scale = "";
+                    if (attr.value && typeof attr.value === "object" && attr.value !== null) {
+                      scale = attr.value.scale ?? attr.value.value ?? "";
+                    } else if (typeof attr.value === "number" || typeof attr.value === "string") {
+                      scale = String(attr.value);
+                    }
+                    let unit = "";
+                    if (attr.value && typeof attr.value === "object" && attr.value !== null && typeof attr.value.unit === "string" && attr.value.unit) {
+                      unit = attr.value.unit;
+                    } else if (typeof attr.unit === "string" && attr.unit) {
+                      unit = attr.unit;
+                    } else if (typeof attr.timeUnit === "string" && attr.timeUnit) {
+                      unit = attr.timeUnit;
+                    }
+                    const unitLabels: Record<string, string> = {
+                      second: "segundos",
+                      segundos: "segundos",
+                      minute: "minutos",
+                      minutos: "minutos",
+                      hour: "horas",
+                      horas: "horas",
+                      day: "dias",
+                      dias: "dias",
+                      week: "semanas",
+                      semanas: "semanas",
+                      month: "meses",
+                      meses: "meses",
+                      year: "anos",
+                      anos: "anos",
+                    };
+                    const unitLabel = unitLabels[unit] || unit || "";
+                    return `${scale} ${unitLabel}`.trim();
+                  }
+                  return String(attr.value);
+                })()}>{(() => {
+                  if (attr.type === "metric") {
+                    const scale = attr.value ?? "";
+                    const unitLabels: Record<string, string> = {
+                      ton: "tonelada",
+                      kilogram: "quilograma",
+                      gram: "grama",
+                      kilometer: "quilômetro",
+                      meter: "metro",
+                      centimeter: "centímetro",
+                      square_meter: "metro quadrado",
+                      cubic_meter: "metro cúbico",
+                      mile: "milha",
+                      feet: "pé",
+                      degree: "grau",
+                      liter: "litro",
+                    };
+                    const unit = attr.unit ? (unitLabels[attr.unit] || attr.unit) : "";
+                    return `${scale} ${unit}`.trim();
+                  }
+                  if (attr.type === "timemetric") {
+                    let scale = "";
+                    if (attr.value && typeof attr.value === "object" && attr.value !== null) {
+                      scale = attr.value.scale ?? attr.value.value ?? "";
+                    } else if (typeof attr.value === "number" || typeof attr.value === "string") {
+                      scale = String(attr.value);
+                    }
+                    let unit = "";
+                    if (attr.value && typeof attr.value === "object" && attr.value !== null && typeof attr.value.unit === "string" && attr.value.unit) {
+                      unit = attr.value.unit;
+                    } else if (typeof attr.unit === "string" && attr.unit) {
+                      unit = attr.unit;
+                    } else if (typeof attr.timeUnit === "string" && attr.timeUnit) {
+                      unit = attr.timeUnit;
+                    }
+                    const unitLabels: Record<string, string> = {
+                      second: "segundos",
+                      segundos: "segundos",
+                      minute: "minutos",
+                      minutos: "minutos",
+                      hour: "horas",
+                      horas: "horas",
+                      day: "dias",
+                      dias: "dias",
+                      week: "semanas",
+                      semanas: "semanas",
+                      month: "meses",
+                      meses: "meses",
+                      year: "anos",
+                      anos: "anos",
+                    };
+                    const unitLabel = unitLabels[unit] || unit || "";
+                    return `${scale} ${unitLabel}`.trim();
+                  }
+                  return String(attr.value);
+                })()}</div>
+                <div className="w-1/6 flex justify-center gap-2">
+                  <Button className="py-2" type="button" palette="danger" size="sm" onClick={() => onRemoveAttribute(idx)}><Trash2 /></Button>
+                  <Button
                     type="button"
                     palette="default"
                     size="sm"
                     className="py-2"
                     onClick={() => {
-                        // Trigger edit for copied attribute (open AddSingleAttributeStep)
-                        if (window && window.dispatchEvent) {
+                      if (window && window.dispatchEvent) {
                         window.dispatchEvent(new CustomEvent('editCopiedAttribute', { detail: { idx } }));
-                        }
+                      }
                     }}
-                    ><Pencil /></Button>
-                )}
+                  >
+                    <Pencil />
+                  </Button>
                 </div>
-            ))}
+              </div>
+            ))
+          )}
         </div>
       </div>
       <div className="flex justify-end gap-2 mt-2">
-          <Button
-            type="button"
-            palette="danger"
-            onClick={onCancel}
-            disabled={loading}
-          >cancelar</Button>
+        <Button
+          type="button"
+          palette="danger"
+          onClick={onCancel}
+          disabled={loading}
+        >cancelar</Button>
         <Button
           type="button"
           palette="default"

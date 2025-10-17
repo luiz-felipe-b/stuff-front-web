@@ -175,6 +175,7 @@ const AddAssetModal: React.FC<AddAssetModalProps> = ({
     const handler = (e: any) => {
       if (e.detail && typeof e.detail.idx === 'number') {
         const attr = attributes[e.detail.idx];
+        if (!attr) return;
         let draft = { ...attr };
         // Transform value for editing
         if (attr.type === "timemetric") {
@@ -262,7 +263,6 @@ const AddAssetModal: React.FC<AddAssetModalProps> = ({
             loading={loading}
             attributes={attributes}
             onAddAttribute={handleAddAttribute}
-            onAttributeChange={handleAttributeChange}
             onRemoveAttribute={handleRemoveAttribute}
             onCancel={onCancel}
             onBack={() => setStep(1)}

@@ -1,876 +1,407 @@
 "use client";
-import MultiCheckbox from "../MultiCheckbox/MultiCheckbox";
-import RadioGroup from "../RadioGroup/RadioGroup";
-import React, { useState, useEffect } from "react";
-import Loader from "@/components/Loader/Loader";
+import React from "react";
+import { X, Pencil, Trash2, Check } from "lucide-react";
 import Button from "../Button/Button";
+import AddSingleAttributeStep from "./AddSingleAttributeStep";
+import { useUser } from "@/context/UserContext";
+import { toast } from "react-hot-toast";
+import EditAttributeValueStep from "./EditAttributeValueStep";
+import Textarea from "../Input/Textarea";
 import Input from "../Input/Input";
-import Switch from "../Switch/Switch";
-import Select, { SelectProps } from "../Select/Select";
-import {
-  X,
-  Package,
-  Plus,
-  Edit3,
-  Trash2,
-  Hash,
-  Calendar,
-  FileText,
-  CheckSquare,
-  ListChecks,
-  Timer,
-  File,
-  Radio,
-  ToggleLeft,
-  Tag,
-  Pencil
-} from "lucide-react";
-import { attributesApi } from "@/services/api";
+import Loader from "../Loader/Loader";
 
-interface AttributeValue {
-  id: string;
-  assetInstanceId: string;
-  attributeId: string;
-  createdAt: string;
-  updatedAt: string;
-  value: any;
-}
-
-interface Attribute {
-  id: string;
-  name: string;
-  description: string;
-  type: string;
-  createdAt: string;
-  updatedAt: string;
-  organizationId: string | null;
-  authorId: string;
-  trashBin: boolean;
-  values: AttributeValue[];
-  unit?: string;
-  options?: string[];
-}
-
-interface Asset {
-  id: string;
-  organizationId: string | null;
-  templateId: string | null;
-  creatorUserId: string;
-  name: string;
-  description: string;
-  trashBin: boolean;
-  createdAt: string;
-  updatedAt: string;
-  attributes?: Attribute[];
-}
-
-type TimeMetricValue = { scale: string; unit: string };
-interface AssetDetailsModalProps {
+export interface AssetDetailsModalProps {
   open: boolean;
-  asset: Asset | null;
-  loading: boolean;
+  asset: {
+    id: string;
+    name: string;
+    description?: string;
+    attributes?: any[];
+    organizationId?: string | null;
+  };
   onClose: () => void;
-  onEdit?: (asset: Asset) => void;
-  onDelete?: (asset: Asset) => void;
-  onAttributeSaved?: () => Promise<void>;
+  onUpdateAsset?: (updated: { name: string; description?: string }) => void;
+  onUpdateAttribute?: (idx: number, updated: any) => void;
 }
 
-const getAttributeIcon = (type: string) => {
-  // All icons: white color, circular stuff-mid background
-  const iconProps = { size: 20, className: "text-stuff-white" };
-  const bgClass = "flex items-center justify-center w-7 h-7 rounded-full bg-stuff-mid";
-  switch (type) {
-    case "text":
-      return (
-        <span className={bgClass}><FileText {...iconProps} /></span>
-      );
-    case "number":
-      return (
-        <span className={bgClass}><Hash {...iconProps} /></span>
-      );
-    case "boolean":
-      return (
-        <span className={bgClass}><ToggleLeft {...iconProps} /></span>
-      );
-    case "date":
-      return (
-        <span className={bgClass}><Calendar {...iconProps} /></span>
-      );
-    case "metric":
-      return (
-        <span className={bgClass}><Tag {...iconProps} /></span>
-      );
-    case "select":
-      return (
-        <span className={bgClass}><CheckSquare {...iconProps} /></span>
-      );
-    case "multiselection":
-      return (
-        <span className={bgClass}><ListChecks {...iconProps} /></span>
-      );
-    case "timemetric":
-      return (
-        <span className={bgClass}><Timer {...iconProps} /></span>
-      );
-    case "file":
-      return (
-        <span className={bgClass}><File {...iconProps} /></span>
-      );
-    case "rfid":
-      return (
-        <span className={bgClass}><Radio {...iconProps} /></span>
-      );
-    default:
-      return (
-        <span className={bgClass}><Package {...iconProps} /></span>
-      );
-  }
-};
-
-const formatDate = (dateString: string) => {
-  return new Date(dateString).toLocaleDateString("pt-BR", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-};
-
-const formatValue = (value: any, type: string, unit?: string) => {
-  switch (type) {
-    case "date":
-      return new Date(value).toLocaleDateString("pt-BR");
-    case "number":
-      return value.toString();
-    case "metric":
-      return `${value}${unit ? ` ${unit}` : ""}`;
-    default:
-      return value.toString();
-  }
-};
-
-const AssetDetailsModal: React.FC<AssetDetailsModalProps> = ({
+const AssetDetailsModal: React.FC<AssetDetailsModalProps & { loading?: boolean }> = ({
   open,
   asset,
-  loading,
   onClose,
-  onEdit,
-  onDelete,
-  onAttributeSaved,
+  onUpdateAsset,
+  onUpdateAttribute,
+  loading = false,
 }) => {
-  // State for available organization attributes
-  const [orgAttributes, setOrgAttributes] = useState<Attribute[]>([]);
-  // State for selected attributeId ('' means new attribute)
-  const [selectedAttributeId, setSelectedAttributeId] = useState("");
-  const [showAddAttribute, setShowAddAttribute] = useState(false);
-  const [newAttribute, setNewAttribute] = useState<{
-    name: string;
-    description: string;
-    type: string;
-    unit?: string;
-    value: string | File | string[] | TimeMetricValue;
-    options?: string[];
-  }>({
-    name: '',
-    description: '',
-    type: 'text',
-    unit: '',
-    value: '',
-    options: [],
-  });
-  // Removed separate unit state; use newAttribute.unit only
-  // Option input state for select/multiselection attribute types
-  const [optionInput, setOptionInput] = useState("");
+  const [editingAsset, setEditingAsset] = React.useState(false);
+  const [editingAttributeIdx, setEditingAttributeIdx] = React.useState<number | null>(null);
+  const [attributeDraft, setAttributeDraft] = React.useState<any | null>(null);
+  const [attributes, setAttributes] = React.useState<any[]>(asset && asset.attributes ? asset.attributes : []);
+  const { user } = useUser();
 
-  // --- Inline attribute value editing state ---
-  const [editingAttrId, setEditingAttrId] = useState<string | null>(null);
-  const [editingValue, setEditingValue] = useState<string>("");
-  const [editingLoading, setEditingLoading] = useState(false);
+  React.useEffect(() => {
+    setAttributes(asset && asset.attributes ? asset.attributes : []);
+  }, [asset]);
 
-  // --- Attribute value deletion state ---
-  const [deletingAttrId, setDeletingAttrId] = useState<string | null>(null);
-  const [deletingLoading, setDeletingLoading] = useState(false);
-
-  // Delete attribute value handler
-  const handleDeleteAttributeValue = async (attribute: Attribute) => {
-    if (!asset) return;
-    const valueObj = attribute.values.find(v => v.assetInstanceId === asset.id && v.attributeId === attribute.id);
-    if (!valueObj) return;
-    if (!window.confirm(`Tem certeza que deseja remover o valor do atributo "${attribute.name}" deste ativo?`)) return;
-    setDeletingAttrId(attribute.id);
-    setDeletingLoading(true);
-    try {
-      await attributesApi.deleteAttributesvalueAttributeValueId(undefined, { params: { attributeValueId: valueObj.id } });
-      if (onAttributeSaved) await onAttributeSaved();
-    } catch (err) {
-      alert('Erro ao remover valor do atributo.');
+  const handleEditAsset = () => {
+    setEditingAsset(true);
+  };
+  const handleSaveAsset = () => {
+    if (onUpdateAsset) {
+      onUpdateAsset({ name: asset.name, description: asset.description });
     }
-    setDeletingAttrId(null);
-    setDeletingLoading(false);
+    setEditingAsset(false);
   };
-
-  // Start editing a value
-  const handleStartEditValue = (attribute: Attribute) => {
-    const val = attribute.values.find(v => v.assetInstanceId === asset?.id && v.attributeId === attribute.id)?.value;
-    setEditingAttrId(attribute.id);
-    setEditingValue(val ?? "");
-  };
-
-  // Cancel editing
-  const handleCancelEditValue = () => {
-    setEditingAttrId(null);
-    setEditingValue("");
-  };
-
-  // Save edited value
-  const handleSaveEditValue = async (attribute: Attribute) => {
-    if (!asset) return;
-    const valueObj = attribute.values.find(v => v.assetInstanceId === asset.id && v.attributeId === attribute.id);
-    if (!valueObj) return;
-    setEditingLoading(true);
-    try {
-      await attributesApi.patchAttributesvalueAttributeValueId(
-        { value: editingValue },
-        { params: { attributeValueId: valueObj.id } }
-      );
-      setEditingAttrId(null);
-      setEditingValue("");
-      if (onAttributeSaved) await onAttributeSaved();
-    } catch (err) {
-      alert('Erro ao atualizar valor do atributo.');
+  const handleEditAttribute = (idx: number) => {
+    const attr = attributes[idx];
+    if (!attr) return;
+    let draft = { ...attr };
+    // Prefer attr.value, but fallback to attr.values[0]?.value if present
+    let rawValue = attr.value;
+    if ((rawValue === undefined || rawValue === null || rawValue === "") && Array.isArray(attr.values) && attr.values.length > 0) {
+      rawValue = attr.values[0].value;
     }
-    setEditingLoading(false);
-  };
-
-  // Reset form and fetch org attributes when modal opens/closes
-  useEffect(() => {
-    if (!open) {
-      setShowAddAttribute(false);
-      setNewAttribute({
-        name: '',
-        description: '',
-        type: 'text',
-        unit: '',
-        value: '',
-        options: [],
-      });
-      setSelectedAttributeId("");
-      setOrgAttributes([]);
-    } else if (asset?.organizationId) {
-      // Fetch all attributes and filter by organizationId
-      attributesApi.getAttributes()
-        .then((resp: any) => {
-          const attrs: Attribute[] = resp?.data || [];
-          setOrgAttributes(attrs.filter(attr => attr.organizationId === asset.organizationId));
-        })
-        .catch(() => setOrgAttributes([]));
-    }
-  }, [open, asset?.organizationId]);
-
-  const handleAttributeChange = (field: string, value: string | File | string[] | TimeMetricValue) => {
-    setNewAttribute(prev => ({ ...prev, [field]: value }));
-  };
-
-  const handleAddAttribute = () => {
-    setShowAddAttribute(true);
-  };
-
-  const handleCancelAddAttribute = () => {
-    setShowAddAttribute(false);
-    setNewAttribute({
-      name: '',
-      description: '',
-      type: 'text',
-      unit: '',
-      value: '',
-      options: [],
-    });
-    setOptionInput("");
-  };
-
-  const handleSaveAttribute = async (e?: React.FormEvent) => {
-    if (e) e.preventDefault();
-    if (!asset) return;
-
-    // Validate name
-    if (typeof newAttribute.name !== 'string' || !newAttribute.name.trim()) {
-      alert('Nome do atributo é obrigatório');
-      return;
-    }
-
-    // Validate value based on type
-    let valueIsEmpty = false;
-    if (typeof newAttribute.value === 'string') {
-      valueIsEmpty = !newAttribute.value.trim();
-    } else if (Array.isArray(newAttribute.value)) {
-      valueIsEmpty = newAttribute.value.length === 0;
-    } else if (
-      newAttribute.type === 'timemetric' &&
-      typeof newAttribute.value === 'object' &&
-      newAttribute.value !== null &&
-      (!(typeof File === 'function' && newAttribute.value instanceof File))
-    ) {
-      valueIsEmpty = !(typeof (newAttribute.value as any).scale === 'string' && (newAttribute.value as any).scale.trim() && typeof (newAttribute.value as any).unit === 'string' && (newAttribute.value as any).unit.trim());
-    } else if (
-      typeof File === 'function' && newAttribute.value instanceof File
-    ) {
-      valueIsEmpty = !(newAttribute.value && 'name' in newAttribute.value && (newAttribute.value as File).name);
-    } else if (!newAttribute.value) {
-      valueIsEmpty = true;
-    }
-    if (valueIsEmpty) {
-      alert('Valor do atributo é obrigatório');
-      return;
-    }
-
-    if (newAttribute.type === 'metric') {
-      if (!newAttribute.unit || typeof newAttribute.unit !== 'string' || !newAttribute.unit.trim()) {
-        alert('Unidade é obrigatória para atributos métricos');
-        return;
+    // Transform value for editing
+    if (attr.type === "timemetric") {
+      let scale = "";
+      let unit = attr.unit || attr.timeUnit || "";
+      if (typeof rawValue === "string" || typeof rawValue === "number") {
+        scale = String(rawValue);
+      } else if (rawValue && typeof rawValue === "object") {
+        scale = rawValue.scale ?? rawValue.value ?? "";
+        unit = rawValue.unit || unit;
       }
-    }
-
-    if (newAttribute.type === 'date' && typeof newAttribute.value === 'string' && isNaN(Date.parse(newAttribute.value))) {
-      alert('Valor deve ser uma data válida para atributos do tipo data');
-      return;
-    }
-
-    // API logic for attribute creation/reuse and value posting
-    try {
-      if (selectedAttributeId) {
-        // Reusing existing attribute: only send value and attributeId
-        await attributesApi.postAttributesAttributeIdvalue(
-          {
-            assetId: asset.id,
-            value: String(newAttribute.value),
-          },
-          {
-            params: { attributeId: selectedAttributeId },
+      draft.value = { scale, unit };
+    } else if (attr.type === "multiselection" || attr.type === "singleselection") {
+      // Parse options
+      let options: string[] = [];
+      if (Array.isArray(attr.options)) {
+        options = attr.options;
+      } else if (typeof attr.options === "string") {
+        try {
+          const parsed = JSON.parse(attr.options);
+          if (Array.isArray(parsed)) {
+            options = parsed;
           }
-        );
+        } catch {
+          options = attr.options.split(/,\s*/);
+        }
+      }
+      draft.options = options;
+      // Parse selected values
+      if (attr.type === "multiselection") {
+        if (Array.isArray(rawValue)) {
+          draft.value = rawValue;
+        } else if (typeof rawValue === "string") {
+          draft.value = rawValue.split(/,\s*/);
+        } else {
+          draft.value = [];
+        }
+      } else if (attr.type === "singleselection") {
+        if (typeof rawValue === "string") {
+          draft.value = rawValue;
+        } else if (Array.isArray(rawValue) && rawValue.length > 0) {
+          draft.value = rawValue[0];
+        } else {
+          draft.value = "";
+        }
+      }
+    } else if (attr.type === "date") {
+      if (typeof rawValue === "string") {
+        const d = new Date(rawValue);
+        draft.value = !isNaN(d.getTime()) ? d.toISOString().slice(0, 10) : rawValue;
       } else {
-        // Creating new attribute: create attribute, then add value
-        const allowedTypes = [
-          "number",
-          "boolean",
-          "select",
-          "text",
-          "date",
-          "file",
-          "metric",
-          "multiselection",
-          "timemetric",
-          "rfid",
-        ] as const;
-        const attrType = allowedTypes.includes(newAttribute.type as any)
-          ? (newAttribute.type as typeof allowedTypes[number])
-          : "text";
-        const attrResp = await attributesApi.postAttributes(
-          {
-            name: newAttribute.name,
-            description: newAttribute.description,
-            authorId: asset.creatorUserId,
-            type: attrType,
-            organizationId: asset.organizationId || undefined,
-          }
-        );
-        const attributeId = attrResp.data.id;
-        await attributesApi.postAttributesAttributeIdvalue(
-          {
-            assetId: asset.id,
-            value: String(newAttribute.value),
-          },
-          {
-            params: { attributeId },
-          }
-        );
+        draft.value = rawValue ? String(rawValue) : "";
       }
-      // Refetch orgAttributes after add
-      if (asset.organizationId) {
-        const resp = await attributesApi.getAttributes();
-        const attrs: Attribute[] = resp?.data || [];
-        const filtered = attrs.filter(attr => attr.organizationId === asset.organizationId);
-        setOrgAttributes(filtered);
-        // Reset dropdown and form to force re-render with new orgAttributes
-        setSelectedAttributeId("");
-        setNewAttribute({
-          name: '',
-          description: '',
-          type: 'text',
-          unit: '',
-          value: '',
-          options: [],
-        });
-        setOptionInput("");
+    } else if (attr.type === "boolean") {
+      if (typeof rawValue === "boolean") {
+        draft.value = rawValue;
+      } else if (typeof rawValue === "string") {
+        draft.value = rawValue === "true";
+      } else {
+        draft.value = false;
       }
-      if (onAttributeSaved) await onAttributeSaved();
-    } catch (err) {
-      alert('Erro ao adicionar atributo ao ativo.');
+    } else {
+      draft.value = rawValue;
     }
-    setShowAddAttribute(false);
+    console.log('Editing attribute draft:', draft);
+    setAttributeDraft(draft);
+    setEditingAttributeIdx(idx);
+  };
+  const handleAttributeDraftChange = (field: string, value: any) => {
+    setAttributeDraft((prev: any) => ({ ...prev, [field]: value }));
+  };
+  const handleAttributeDraftSave = () => {
+    if (editingAttributeIdx !== null) {
+      const attr = attributes[editingAttributeIdx];
+      const updatedAttr = {
+        ...attr,
+        ...attributeDraft,
+        options: attributeDraft.options ?? attr.options,
+      };
+      // Only update local state, not API
+      const updatedAttrs = attributes.map((a, i) => i === editingAttributeIdx ? updatedAttr : a);
+      setAttributes(updatedAttrs);
+      if (onUpdateAttribute) onUpdateAttribute(editingAttributeIdx, updatedAttr);
+    }
+    setAttributeDraft(null);
+    setEditingAttributeIdx(null);
+  };
+  const handleAttributeDraftCancel = () => {
+    setAttributeDraft(null);
+    setEditingAttributeIdx(null);
   };
 
-  if (!open || !asset) return null;
+  if (!open) return null;
+  const showLoader = loading || !asset || !asset.id;
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
-      <div className="absolute inset-0 w-screen h-screen bg-stuff-black/40 z-0" onClick={onClose}></div>
-      <div className="relative z-10 bg-stuff-white  rounded-2xl border-2 border-stuff-mid shadow-[8px_8px_0_0_rgba(0,0,0,0.1)] w-full max-w-2xl max-h-[90vh] overflow-y-auto p-0 animate-fadeIn custom-scrollbar" onClick={e => e.stopPropagation()}>
-        {loading && (
-          <div className="absolute inset-0 bg-white/80 flex flex-col items-center justify-center z-50 rounded-2xl">
-            <Loader label="Carregando detalhes..." />
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-stuff-black/40" onClick={onClose}>
+      <div className="flex flex-col gap-6 p-6 w-full max-w-4xl bg-stuff-white rounded-2xl border-2 border-stuff-light relative" onClick={e => e.stopPropagation()}>
+        <button className="absolute top-4 right-4 text-stuff-light hover:bg-stuff-mid/20 rounded-full p-2 transition cursor-pointer" onClick={onClose}>
+          <X size={22} />
+        </button>
+        {showLoader ? (
+          <div
+            className="flex flex-col items-center justify-center"
+            style={{ minHeight: 600, minWidth: 800 }}
+          >
+            <Loader />
+          </div>
+        ) : (
+          <>
+            <div className="flex flex-col gap-2">
+              <p className="font-extrabold text-stuff-light">Detalhes do ativo</p>
+              <div className="flex flex-col border-2 border-b-4 border-stuff-light rounded-2xl p-4 bg-stuff-white">
+                <div className="flex flex-col md:flex-row md:gap-8 gap-2">
+                  <div>
+                    <div className="font-semibold text-stuff-light">nome</div>
+                    <div className="text-stuff-black text-base">{asset.name}</div>
+                  </div>
+                  <div>
+                    <div className="font-semibold text-stuff-light">descrição</div>
+                    <div className="text-stuff-black text-base">{asset.description}</div>
+                  </div>
+                  <Button
+                    variant="primary"
+                    palette="default"
+                    size="sm"
+                    className="ml-auto"
+                    onClick={handleEditAsset}
+                  ><Pencil size={24} /></Button>
+                </div>
+              </div>
+            </div>
+            <div className="flex flex-col gap-2">
+              <div className="text-stuff-light font-extrabold">Atributos</div>
+              <div className="h-[48vh] overflow-y-auto custom-scrollbar border-2 border-t-8 border-stuff-light rounded-2xl w-full bg-stuff-white p-2">
+                <div className="flex font-semibold text-stuff-light rounded px-2 py-2 mb-2">
+                  <div className="w-1/3">nome</div>
+                  <div className="w-1/3">tipo</div>
+                  <div className="w-1/3">valor</div>
+                  <div className="w-1/6 text-center">ações</div>
+                </div>
+                {attributes.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center h-full w-full">
+                    <span className="text-stuff-mid">nenhum atributo.</span>
+                  </div>
+                ) : (
+                  attributes.map((attr, idx) => {
+                    let rawValue = attr.value;
+                    if ((rawValue === undefined || rawValue === null || rawValue === "") && Array.isArray(attr.values) && attr.values.length > 0) {
+                      rawValue = attr.values[0].value;
+                    }
+                    let displayValue = "";
+                    if (attr.type === "metric") {
+                      const scale = rawValue ?? "";
+                      const unitLabels: Record<string, string> = {
+                        ton: "tonelada", kilogram: "quilograma", gram: "grama", kilometer: "quilômetro", meter: "metro", centimeter: "centímetro", square_meter: "metro quadrado", cubic_meter: "metro cúbico", mile: "milha", feet: "pé", degree: "grau", liter: "litro",
+                      };
+                      const unit = attr.unit ? (unitLabels[attr.unit] || attr.unit) : "";
+                      displayValue = `${scale} ${unit}`.trim();
+                    } else if (attr.type === "timemetric") {
+                      let scale = "";
+                      if (rawValue && typeof rawValue === "object" && rawValue !== null) {
+                        scale = rawValue.scale ?? rawValue.value ?? "";
+                      } else if (typeof rawValue === "string" || typeof rawValue === "number") {
+                        scale = String(rawValue);
+                      }
+                      displayValue = `${scale} ${rawValue.unit || attr.unit || ""}`.trim();
+                    } else if (attr.type === "multiselection") {
+                      if (Array.isArray(rawValue)) {
+                        displayValue = rawValue.filter(Boolean).join(", ");
+                      } else if (typeof rawValue === "string") {
+                        displayValue = rawValue;
+                      }
+                    } else if (attr.type === "boolean") {
+                      if (typeof rawValue === "boolean") {
+                        displayValue = rawValue ? "Sim" : "Não";
+                      } else if (typeof rawValue === "string") {
+                        displayValue = rawValue === "true" ? "Sim" : rawValue === "false" ? "Não" : rawValue;
+                      }
+                    } else if (attr.type === "date") {
+                      if (typeof rawValue === "string") {
+                        displayValue = rawValue;
+                      }
+                    } else {
+                      displayValue = rawValue !== undefined && rawValue !== null ? String(rawValue) : "";
+                    }
+                    if (!displayValue) displayValue = "-";
+                    const typeLabels: Record<string, string> = {
+                      text: "texto", number: "numérico", boolean: "booleano", date: "data", metric: "métrica", select: "seleção", multiselection: "seleção múltipla", timemetric: "tempo métrico", file: "arquivo", rfid: "rfid",
+                    };
+                    return (
+                      <div key={attr.id || idx} className="flex items-center gap-2 mb-2 px-4 py-2 border-b-4 border-2 rounded-2xl border-stuff-light shadow-[4px_4px_0_0_rgba(0,0,0,0.1)]">
+                        <div className="w-1/2 truncate" title={attr.name}>{attr.name}</div>
+                        <div className="w-1/2 flex gap-2 items-center truncate" title={attr.type}>{typeLabels[attr.type] || attr.type}</div>
+                        <div className="w-1/2 truncate" title={displayValue}>{displayValue}</div>
+                        <div className="w-1/6 flex gap-2 justify-center">
+                          <Button variant="primary" palette="default" size="sm" className="p-1" title="Editar" onClick={() => handleEditAttribute(idx)}>
+                            <Pencil size={24} />
+                          </Button>
+                          <Button palette="danger" size="sm" className="p-1" title="Excluir" onClick={() => {
+                            setAttributes(prev => prev.filter((_, i) => i !== idx));
+                            if (onUpdateAttribute) onUpdateAttribute(idx, null);
+                          }}>
+                            <Trash2 size={24} />
+                          </Button>
+                        </div>
+                      </div>
+                    );
+                  })
+                )}
+
+              </div>
+              <div className="flex justify-end gap-3 mt-6">
+                <Button palette="danger" size="md" onClick={onClose}>
+                  Cancelar
+                </Button>
+                <Button palette="success" size="md" onClick={async () => {
+                  let success = true;
+                  try {
+                    const { attributesApi, assetsApi } = await import("@/services/api");
+                    // Persist asset name/description
+                    await assetsApi.patchAssetsId({
+                      name: asset.name,
+                      description: asset.description,
+                    }, { params: { id: asset.id } });
+                    // Persist changed attribute values
+                    let anyPatched = false;
+                    for (let i = 0; i < attributes.length; i++) {
+                      const attr = attributes[i];
+                      const origAttr = asset.attributes?.[i];
+                      // Extract current and original value for comparison
+                      let newValue = attr.value;
+                      let oldValue = origAttr?.value;
+                      if ((oldValue === undefined || oldValue === null || oldValue === "") && Array.isArray(origAttr?.values) && origAttr.values.length > 0) {
+                        oldValue = origAttr.values[0].value;
+                      }
+                      // Normalize values for comparison
+                      const normalize = (val: any, type: string) => {
+                        if (type === "timemetric") {
+                          if (val && typeof val === "object") return `${val.scale ?? ""}|${val.unit ?? ""}`;
+                          return String(val ?? "");
+                        }
+                        if (type === "metric") {
+                          if (val && typeof val === "object") return `${val.scale ?? ""}|${attr.unit ?? ""}`;
+                          return String(val ?? "");
+                        }
+                        if (type === "multiselection") {
+                          if (Array.isArray(val)) return val.filter(Boolean).join(",");
+                          return String(val ?? "");
+                        }
+                        if (type === "boolean") {
+                          return String(val === true || val === "true");
+                        }
+                        return String(val ?? "");
+                      };
+                      const normNew = normalize(newValue, attr.type);
+                      const normOld = normalize(oldValue, attr.type);
+                      // Only patch if normalized values are truly different and newValue is not empty/undefined/null
+                      if (normNew !== normOld && normNew !== "" && normNew !== "undefined" && normNew !== "null") {
+                        // Find the correct attribute value ID
+                        const valueId = Array.isArray(attr.values) && attr.values.length > 0 ? attr.values[0].id : null;
+                        if (valueId) {
+                          // Build body according to type
+                          let body: any = {};
+                          if (attr.type === "timemetric") {
+                            body.value = newValue?.scale ?? (typeof newValue === "object" ? "" : newValue);
+                            body.timeUnit = newValue?.unit || attr.unit || "";
+                          } else if (attr.type === "metric") {
+                            body.value = typeof newValue === "object" ? newValue?.scale ?? "" : newValue;
+                            body.metricUnit = attr.unit || "";
+                          } else if (attr.type === "multiselection") {
+                            body.value = Array.isArray(newValue) ? newValue.filter(Boolean).join(",") : String(newValue ?? "");
+                          } else if (attr.type === "boolean") {
+                            body.value = typeof newValue === "boolean" ? newValue : newValue === "true";
+                          } else {
+                            body.value = newValue ?? "";
+                          }
+                          await attributesApi.patchAttributesvalueAttributeValueId(body, { params: { attributeValueId: valueId } });
+                          anyPatched = true;
+                        } else {
+                          toast.error(`Não foi possível atualizar o valor do atributo "${attr.name}" porque ele ainda não existe.`);
+                        }
+                      }
+                    }
+                    toast.success("Alterações salvas!");
+                  } catch (err) {
+                    success = false;
+                    toast.error("Erro ao salvar alterações de atributos ou ativo");
+                  }
+                  if (onUpdateAsset) {
+                    onUpdateAsset({ name: asset.name, description: asset.description });
+                  }
+                  onClose();
+                }}>
+                  Salvar alterações
+                </Button>
+              </div>
+            </div>
+          </>
+        )}
+        {editingAsset && (
+          <div className="fixed inset-0 z-60 flex items-center justify-center bg-stuff-black/40">
+            <div className="bg-stuff-white border-2 border-b-4 border-stuff-light rounded-2xl p-6 w-full max-w-md shadow-lg">
+              <h3 className="font-bold  text-stuff-light mb-2">Editar Ativo</h3>
+              <label className="font-semibold text-stuff-light mb-1">nome</label>
+              <Input className="border rounded p-2 w-full mb-2" defaultValue={asset.name} onChange={e => asset.name = e.target.value} />
+              <label className="font-semibold text-stuff-light mb-1">descrição</label>
+              <Textarea className="border rounded p-2 w-full mb-2" defaultValue={asset.description} onChange={e => asset.description = e.target.value} />
+              <div className="flex gap-2 justify-end mt-2">
+                <Button
+                  variant="primary"
+                  palette="danger"
+                  size="md"
+                  className="py-3"
+                  onClick={() => setEditingAsset(false)}
+                >
+                  <X size={24} />
+                </Button>
+                <Button
+                  variant="primary"
+                  palette="success"
+                  size="md"
+                  className="py-3"
+                  onClick={handleSaveAsset}
+                >
+                  <Check size={24} />
+                </Button>
+              </div>
+            </div>
           </div>
         )}
-        {/* Header */}
-        <div className="flex items-center justify-between px-6 pt-6 pb-2 border-b border-stuff-gray-100">
-          <div className="flex items-center gap-3">
-            <div className="flex items-center justify-center w-12 h-12 rounded-full bg-stuff-primary/10">
-              <Package size={28} className="text-stuff-primary" />
-            </div>
-            <div>
-              <h2 className="text-2xl font-bold text-stuff-dark leading-tight">{asset.name}</h2>
-              {asset.description && <p className="text-stuff-mid text-sm mt-1">{asset.description}</p>}
-            </div>
-          </div>
-          <button className="p-2 rounded-full hover:bg-stuff-gray-50 text-stuff-mid hover:text-stuff-dark transition-colors cursor-pointer" onClick={onClose} aria-label="Fechar">
-            <X size={24} />
-          </button>
-        </div>
-        {/* Content */}
-        <div className="px-6 py-4 flex flex-col gap-6">
-          {/* Info Section */}
-          <div className="bg-stuff-gray-50 rounded-xl p-4 flex flex-col gap-2 border border-stuff-gray-100">
-            <div className="flex flex-wrap gap-4 text-sm">
-              <div><span className="font-medium text-stuff-dark">ID:</span> <span className="text-stuff-mid break-all">{asset.id}</span></div>
-              <div><span className="font-medium text-stuff-dark">Criado em:</span> <span className="text-stuff-mid">{formatDate(asset.createdAt)}</span></div>
-              <div><span className="font-medium text-stuff-dark">Atualizado em:</span> <span className="text-stuff-mid">{formatDate(asset.updatedAt)}</span></div>
-              <div><span className="font-medium text-stuff-dark">Status:</span> <span className={`inline-block px-2 py-1 rounded text-xs font-semibold ${asset.trashBin ? 'bg-stuff-light text-stuff-mid' : 'bg-stuff-success/10 text-stuff-success'}`}>{asset.trashBin ? 'Lixeira' : 'Ativo'}</span></div>
+        {editingAttributeIdx !== null && attributeDraft && (
+          <div className="fixed inset-0 z-60 flex items-center justify-center bg-stuff-black/40">
+            <div className="bg-stuff-white border-2 border-b-4 border-stuff-light rounded-2xl p-6 w-full max-w-md shadow-lg">
+              <EditAttributeValueStep
+                attribute={attributeDraft}
+                onChange={handleAttributeDraftChange}
+                onSave={handleAttributeDraftSave}
+                onCancel={handleAttributeDraftCancel}
+                loading={false}
+              />
             </div>
           </div>
-          {/* Attributes Section */}
-          <div>
-            <div className="flex items-center justify-between mb-2">
-              <h3 className="text-lg font-semibold text-stuff-dark">Atributos</h3>
-              {!showAddAttribute && (
-                <Button size="sm" palette="default" onClick={handleAddAttribute} iconBefore={<Plus size={16} />}>Adicionar</Button>
-              )}
-            </div>
-            {/* Add Attribute Form */}
-            {showAddAttribute && (
-              <form className="bg-white border border-stuff-gray-100 rounded-xl p-4 mb-3 flex flex-col gap-3 shadow-sm" onSubmit={handleSaveAttribute}>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  {/* Attribute selection dropdown */}
-                  <div className="md:col-span-2">
-                    <label className="block text-stuff-mid font-medium mb-1">Usar atributo existente</label>
-                    <Select
-                      value={selectedAttributeId}
-                      onChange={e => {
-                        const id = e.target.value;
-                        setSelectedAttributeId(id);
-                        if (id) {
-                          const attr = orgAttributes.find(a => a.id === id);
-                          if (attr) {
-                            setNewAttribute({
-                              name: attr.name,
-                              description: attr.description,
-                              type: attr.type,
-                              unit: attr.unit || '',
-                              value: '',
-                              options: attr.options ?? [],
-                            });
-                          }
-                        } else {
-                          setNewAttribute({
-                            name: '',
-                            description: '',
-                            type: 'text',
-                            unit: '',
-                            value: '',
-                            options: [],
-                          });
-                        }
-                      }}
-                      options={[
-                        { value: '', label: 'Novo atributo' },
-                        ...orgAttributes.map(attr => ({ value: attr.id, label: attr.name }))
-                      ]}
-                      placeholder="Selecione um atributo existente ou crie novo"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-stuff-mid font-medium mb-1">Nome *</label>
-                    <Input
-                      type="text"
-                      value={newAttribute.name}
-                      onChange={e => handleAttributeChange("name", e.target.value)}
-                      placeholder="Nome do atributo"
-                      required
-                      disabled={!!selectedAttributeId}
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-stuff-mid font-medium mb-1">Tipo *</label>
-                    <Select
-                      value={newAttribute.type}
-                      onChange={e => handleAttributeChange("type", e.target.value)}
-                      required
-                      options={[
-                        { value: "text", label: "Texto" },
-                        { value: "number", label: "Numérico" },
-                        { value: "boolean", label: "Booleano" },
-                        { value: "date", label: "Data" },
-                        { value: "metric", label: "Métrica" },
-                        { value: "select", label: "Seleção" },
-                        { value: "multiselection", label: "Seleção múltipla" },
-                        { value: "timemetric", label: "Tempo métrico" },
-                        { value: "file", label: "Arquivo" },
-                        { value: "rfid", label: "RFID" },
-                      ]}
-                      placeholder="Selecione o tipo"
-                      disabled={!!selectedAttributeId}
-                    />
-                  </div>
-                  <div className="md:col-span-2">
-                    <label className="block text-stuff-mid font-medium mb-1">Descrição</label>
-                    <Input
-                      type="text"
-                      value={newAttribute.description}
-                      onChange={e => handleAttributeChange("description", e.target.value)}
-                      placeholder="Descrição do atributo"
-                      disabled={!!selectedAttributeId}
-                    />
-                  </div>
-                  {newAttribute.type === 'metric' && (
-                    <div>
-                      <label className="block text-stuff-mid font-medium mb-1">Unidade *</label>
-                      <Select
-                        value={newAttribute.unit}
-                        onChange={e => handleAttributeChange('unit', e.target.value)}
-                        options={[
-                          { value: "ton", label: "Tonelada" },
-                          { value: "kilogram", label: "Quilograma" },
-                          { value: "gram", label: "Grama" },
-                          { value: "kilometer", label: "Quilômetro" },
-                          { value: "meter", label: "Metro" },
-                          { value: "centimeter", label: "Centímetro" },
-                          { value: "square_meter", label: "Metro quadrado" },
-                          { value: "cubic_meter", label: "Metro cúbico" },
-                          { value: "mile", label: "Milha" },
-                          { value: "feet", label: "Pé" },
-                          { value: "degree", label: "Grau" },
-                          { value: "liter", label: "Litro" },
-                        ]}
-                        placeholder="Selecione a unidade"
-                        required
-                        disabled={!!selectedAttributeId}
-                      />
-                      {newAttribute.unit && (
-                        <div className="text-xs text-stuff-mid mt-1">
-                          Unidade selecionada: {
-                            [
-                              { value: "ton", label: "Tonelada" },
-                              { value: "kilogram", label: "Quilograma" },
-                              { value: "gram", label: "Grama" },
-                              { value: "kilometer", label: "Quilômetro" },
-                              { value: "meter", label: "Metro" },
-                              { value: "centimeter", label: "Centímetro" },
-                              { value: "square_meter", label: "Metro quadrado" },
-                              { value: "cubic_meter", label: "Metro cúbico" },
-                              { value: "mile", label: "Milha" },
-                              { value: "feet", label: "Pé" },
-                              { value: "degree", label: "Grau" },
-                              { value: "liter", label: "Litro" },
-                            ].find(opt => opt.value === newAttribute.unit)?.label || newAttribute.unit
-                          }
-                        </div>
-                      )}
-                    </div>
-                  )}
-                  <div className="md:col-span-2">
-                    <label className="block text-stuff-mid font-medium mb-1">Valor *</label>
-                    {/* Render input based on attribute type */}
-                    {(() => {
-                      switch (newAttribute.type) {
-                        case 'boolean':
-                          return (
-                            <div className="flex items-center gap-3">
-                              <Switch
-                                checked={newAttribute.value === 'true'}
-                                onChange={val => handleAttributeChange('value', val ? 'true' : 'false')}
-                                label={newAttribute.value === 'true' ? 'Sim' : 'Não'}
-                              />
-                            </div>
-                          );
-                        case 'date':
-                          return (
-                            <Input
-                              type="date"
-                              value={newAttribute.value as string}
-                              onChange={e => handleAttributeChange('value', e.target.value)}
-                              required
-                            />
-                          );
-                        case 'number':
-                        case 'metric':
-                          return (
-                            <Input
-                              type="number"
-                              value={newAttribute.value as string}
-                              onChange={e => handleAttributeChange('value', e.target.value)}
-                              placeholder="Valor do atributo"
-                              required
-                            />
-                          );
-                        case 'timemetric': {
-                          let timeValue: { scale: string; unit: string } = { scale: '', unit: '' };
-                          if (
-                            typeof newAttribute.value === 'object' &&
-                            newAttribute.value !== null &&
-                            !Array.isArray(newAttribute.value) &&
-                            'scale' in newAttribute.value &&
-                            'unit' in newAttribute.value
-                          ) {
-                            timeValue = newAttribute.value as { scale: string; unit: string };
-                          }
-                          const timeUnits = [
-                            { value: 'second', label: 'Segundo' },
-                            { value: 'minute', label: 'Minuto' },
-                            { value: 'hour', label: 'Hora' },
-                            { value: 'day', label: 'Dia' },
-                            { value: 'week', label: 'Semana' },
-                            { value: 'fortnight', label: 'Quinzena' },
-                            { value: 'month', label: 'Mês' },
-                            { value: 'year', label: 'Ano' },
-                          ];
-                          const handleTimeMetricChange = (field: 'scale' | 'unit', val: string) => {
-                            handleAttributeChange('value', { ...timeValue, [field]: val });
-                          };
-                          return (
-                            <div className="flex gap-2">
-                              <Input
-                                type="number"
-                                value={timeValue.scale}
-                                onChange={e => handleTimeMetricChange('scale', e.target.value)}
-                                placeholder="Escala"
-                                required
-                              />
-                              <Select
-                                value={timeValue.unit}
-                                onChange={e => handleTimeMetricChange('unit', e.target.value)}
-                                options={timeUnits}
-                                placeholder="Unidade"
-                                required
-                              />
-                            </div>
-                          );
-                        }
-                        case 'file':
-                          return (
-                            <Input
-                              type="file"
-                              onChange={e => {
-                                const file = (e.target as HTMLInputElement).files?.[0] || '';
-                                handleAttributeChange('value', file);
-                              }}
-                              required
-                            />
-                          );
-                        case 'select':
-                        case 'multiselection': {
-                          // Parse options: support both array and comma-separated string
-                          let options: string[] = [];
-                          if (Array.isArray(newAttribute.options)) {
-                            options = newAttribute.options;
-                          } else if (typeof newAttribute.options === 'string') {
-                            const optStr: string = (newAttribute.options as string).trim();
-                            if (optStr.startsWith('[') && optStr.endsWith(']')) {
-                              try {
-                                const parsed = JSON.parse(optStr);
-                                if (Array.isArray(parsed)) {
-                                  options = parsed.map((item: any) => String(item));
-                                } else {
-                                  options = [];
-                                }
-                              } catch {
-                                options = [];
-                              }
-                            } else {
-                              options = optStr
-                                .split(',')
-                                .map((opt: string) => opt.trim())
-                                .filter((opt: string) => opt.length > 0);
-                            }
-                          }
-                          let value = newAttribute.value;
-                          if (newAttribute.type === 'multiselection' && !Array.isArray(value)) value = [];
-                          if (newAttribute.type === 'select' && Array.isArray(value)) value = '';
-                          const handleAddOption = () => {
-                            const val = optionInput.trim();
-                            if (val && !options.includes(val)) {
-                              handleAttributeChange('options', [...options, val]);
-                              setOptionInput("");
-                            }
-                          };
-                          return (
-                            <div className="flex flex-col gap-2">
-                              <div className="flex flex-wrap gap-2 mb-2">
-                                {options.map((opt, idx) => (
-                                  <div key={opt + '-' + idx} className="flex items-center gap-1 bg-stuff-gray-100 rounded px-2 py-1">
-                                    <span>{opt}</span>
-                                    <button type="button" className="text-stuff-danger ml-1" onClick={() => {
-                                      const newOpts = options.filter((_, i) => i !== idx);
-                                      handleAttributeChange('options', newOpts);
-                                      if (newAttribute.type === 'multiselection' && Array.isArray(value)) {
-                                        handleAttributeChange('value', value.filter((v: string) => v !== opt));
-                                      } else if (newAttribute.type === 'select' && value === opt) {
-                                        handleAttributeChange('value', '');
-                                      }
-                                    }}>×</button>
-                                  </div>
-                                ))}
-                              </div>
-                              <div className="flex gap-2 mb-2">
-                                <Input
-                                  type="text"
-                                  placeholder="Adicionar opção"
-                                  value={optionInput}
-                                  onChange={e => setOptionInput(e.target.value)}
-                                  onKeyDown={e => {
-                                    if (e.key === 'Enter') {
-                                      e.preventDefault();
-                                      handleAddOption();
-                                    }
-                                  }}
-                                />
-                                <Button type="button" size="sm" palette="default" onClick={handleAddOption} disabled={!optionInput.trim() || options.includes(optionInput.trim())}>
-                                  Adicionar
-                                </Button>
-                              </div>
-                              {newAttribute.type === 'select' ? (
-                                <RadioGroup
-                                  options={options}
-                                  value={value as string}
-                                  onChange={val => handleAttributeChange('value', val)}
-                                />
-                              ) : (
-                                <MultiCheckbox
-                                  options={options}
-                                  value={Array.isArray(value) ? value : []}
-                                  onChange={vals => handleAttributeChange('value', vals)}
-                                />
-                              )}
-                            </div>
-                          );
-                        }
-                        case 'rfid':
-                        case 'text':
-                        default:
-                          return (
-                            <Input
-                              type="text"
-                              value={newAttribute.value as string}
-                              onChange={e => handleAttributeChange('value', e.target.value)}
-                              placeholder="Valor do atributo"
-                              required
-                            />
-                          );
-                      }
-                    })()}
-                  </div>
-                </div>
-                <div className="flex justify-end gap-2 mt-2">
-                  <Button type="button" palette="default" onClick={handleCancelAddAttribute} disabled={loading}>Cancelar</Button>
-                  <Button type="submit" palette="default" loading={loading}>Salvar</Button>
-                </div>
-              </form>
-            )}
-            {/* Attribute List */}
-            {asset.attributes && asset.attributes.length > 0 ? (
-              <div className="flex flex-col gap-2">
-                {asset.attributes.map(attribute => {
-                  const attributeValue = attribute.values.find(
-                    val => val.assetInstanceId === asset.id && val.attributeId === attribute.id
-                  );
-                  const isEditing = editingAttrId === attribute.id;
-                  return (
-                    <div key={attribute.id} className="flex items-center gap-4 bg-stuff-gray-50 border border-stuff-gray-100 rounded-lg px-4 py-3 shadow-sm">
-                      {getAttributeIcon(attribute.type)}
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2">
-                          <h4 className="font-semibold text-stuff-mid text-base truncate">{attribute.name}</h4>
-                          <span className="text-xs px-2 py-0.5 rounded bg-stuff-high text-stuff-dark ml-1">{attribute.type}</span>
-                        </div>
-                        {attribute.description && <p className="text-stuff-mid text-xs truncate mt-0.5">{attribute.description}</p>}
-                      </div>
-                      {isEditing ? (
-                        <form className="flex items-center gap-2" onSubmit={e => { e.preventDefault(); handleSaveEditValue(attribute); }}>
-                          <Input
-                            type={attribute.type === 'number' ? 'number' : 'text'}
-                            value={editingValue}
-                            onChange={e => setEditingValue(e.target.value)}
-                            className="w-28"
-                            autoFocus
-                          />
-                          <Button
-                            type="submit"
-                            size="sm"
-                            palette="success"
-                            loading={editingAttrId === attribute.id && editingLoading}
-                            disabled={editingAttrId === attribute.id && editingLoading}
-                          >Salvar</Button>
-                          <Button
-                            type="button"
-                            size="sm"
-                            palette="default"
-                            onClick={handleCancelEditValue}
-                            disabled={editingAttrId === attribute.id && editingLoading}
-                          >Cancelar</Button>
-                        </form>
-                      ) : (
-                        <>
-                          {attributeValue && (
-                            <div className="text-base text-stuff-primary whitespace-nowrap">{formatValue(attributeValue.value, attribute.type, attribute.unit)}</div>
-                          )}
-                          <Button size="sm" palette="default" onClick={() => handleStartEditValue(attribute)} className="ml-2"><Pencil/></Button>
-                          {/* Delete attribute value button */}
-                          {attributeValue && (
-                            <Button
-                              size="sm"
-                              palette="danger"
-                              onClick={() => handleDeleteAttributeValue(attribute)}
-                              loading={deletingAttrId === attribute.id && deletingLoading}
-                              disabled={deletingAttrId === attribute.id && deletingLoading}
-                              title="Remover valor do atributo deste ativo"
-                            >
-                              <Trash2 />
-                            </Button>
-                          )}
-                        </>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            ) : (
-              !showAddAttribute && (
-                <div className="flex flex-col items-center justify-center py-6">
-                  <Package size={48} className="text-stuff-light mb-2" />
-                  <p className="text-stuff-mid">Este ativo não possui atributos definidos.</p>
-                </div>
-              )
-            )}
-          </div>
-        </div>
-        {/* Actions */}
-        <div className="flex justify-end gap-2 px-6 pb-6 pt-2 border-t border-stuff-gray-100">
-          {onEdit && (
-            <Button palette="default" onClick={() => onEdit(asset)} iconBefore={<Edit3 size={16} />}>Editar</Button>
-          )}
-          {onDelete && (
-            <Button palette="danger" onClick={() => onDelete(asset)} iconBefore={<Trash2 size={16} />}>Excluir</Button>
-          )}
-          <Button palette="default" onClick={onClose}>Fechar</Button>
-        </div>
+        )}
       </div>
     </div>
   );

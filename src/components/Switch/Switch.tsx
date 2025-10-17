@@ -14,14 +14,14 @@ const Switch: React.FC<SwitchProps> = ({ checked, onChange, disabled = false, la
         />
         <span
           className={`block w-11 h-6 rounded-full transition-colors duration-200
-            ${checked ? 'bg-stuff-success' : 'bg-stuff-gray-100'}`}
+            ${checked ? 'bg-success-light' : 'bg-danger-light'}`}
         ></span>
         <span
-          className={`absolute left-1 top-1 w-4 h-4 rounded-full bg-white shadow transition-transform duration-200
+          className={`absolute left-1 top-1 w-4 h-4 rounded-full bg-stuff-white shadow transition-transform duration-200
             ${checked ? 'translate-x-5' : ''}`}
         ></span>
       </span>
-      {label && <span className="ml-3 text-sm text-stuff-mid">{label}</span>}
+      {label && <span className={`ml-3 text-md ${checked ? 'text-success-light' : 'text-danger-light'} font-extrabold`}>{label}</span>}
     </label>
   );
 };

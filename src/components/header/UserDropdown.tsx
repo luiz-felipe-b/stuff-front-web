@@ -3,7 +3,7 @@
 import { useUser } from "../../context/UserContext";
 import { useSelectedOrganization } from "@/context/SelectedOrganizationContext";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { User as UserIcon, ChevronDown, LogOut, UserRound } from "lucide-react";
 
 const UserDropdown = () => {
@@ -11,6 +11,20 @@ const UserDropdown = () => {
   const { setOrganization } = useSelectedOrganization();
   const router = useRouter();
   const [open, setOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [open]);
 
   if (!user) return null;
 
@@ -32,7 +46,7 @@ const UserDropdown = () => {
   // }
 
   return (
-    <div className="relative">
+    <div className="relative" ref={dropdownRef}>
       <button
         type="button"
         className="flex items-center gap-2 px-3 py-2 rounded-xl bg-stuff-white cursor-pointer"
@@ -40,7 +54,7 @@ const UserDropdown = () => {
         aria-haspopup="true"
         aria-expanded={open}
       >
-        <span className="w-10 h-10 flex items-center justify-center rounded-full bg-stuff-light text-stuff-white font-bold text-xl shadow-sm">
+        <span className="w-10 h-10 flex items-center justify-center rounded-full bg-stuff-light text-stuff-white font-bold text-xl">
           {initials || <UserIcon size={22} />}
         </span>
         <span className="font-semibold text-stuff-light text-lg ml-2">

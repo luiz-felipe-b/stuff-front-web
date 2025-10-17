@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
+import { useRouter, usePathname } from "next/navigation";
 import Loader from "@/components/Loader/Loader";
 import Button from "../Button/Button";
 import ToggleButton from "../Button/ToggleButton";
@@ -74,7 +75,6 @@ interface AssetListProps {
   onEdit?: (asset: Asset) => void;
   onDelete?: (asset: Asset) => void;
   onView?: (asset: Asset) => void;
-  onAddAsset?: (asset: NewAsset) => Promise<void>;
   onAddAttribute?: () => Promise<void>;
   onAssetsChanged?: () => void;
   loading?: boolean;
@@ -95,7 +95,6 @@ export default function AssetList({
   organization,
   onEdit,
   onDelete,
-  onAddAsset,
   onAddAttribute,
   onAssetsChanged,
   loading = false,
@@ -120,10 +119,31 @@ export default function AssetList({
   const [showAddAsset, setShowAddAsset] = useState(false);
   const [newAsset, setNewAsset] = useState<NewAsset>({
     name: '',
-    description: ''
+    description: '',
+    organizationId: organization?.id ?? null
   });
   // Pagination state
   const [page, setPage] = useState(1);
+
+  // Router for modal route sync
+  const router = useRouter();
+  const pathname = usePathname();
+
+  // Open modal and change route
+  const handleAddAsset = () => {
+    // Always set organizationId when opening modal
+    setNewAsset(prev => ({
+      ...prev,
+      organizationId: organization?.id ?? null
+    }));
+    setShowAddAsset(true);
+  };
+
+  // Close modal and revert route
+  const handleCancelAddAsset = () => {
+    setShowAddAsset(false);
+    resetNewAsset();
+  };
 
   // Handler to reload all assets for the current organization from backend
   const handleReloadAssets = async () => {
@@ -137,12 +157,18 @@ export default function AssetList({
       // Fetch asset list for the org
       const assetsResp = await organizationsApi.getOrganizationsIdassets({ params: { id: organization.id }, headers: token ? { Authorization: `Bearer ${token}` } : {} });
       const assetList = assetsResp.data || [];
+      // Debug: log asset list response
+      // eslint-disable-next-line no-console
+      console.log('[Asset List] Response:', assetList);
       // Fetch each asset's full details (with attributes)
       const assetsWithAttributes = await Promise.all(
         assetList.map(async (a: any) => {
           try {
             const assetDetailResp = await assetsApi.getAssetsId({ params: { id: a.id }, headers: token ? { Authorization: `Bearer ${token}` } : {} });
             const asset = assetDetailResp.data;
+            // Debug: log asset detail response
+            // eslint-disable-next-line no-console
+            console.log('[Asset Detail] Response for id', a.id, ':', asset);
             return {
               ...asset,
               description: asset?.description ?? "",
@@ -197,51 +223,39 @@ export default function AssetList({
   const resetNewAsset = () => {
     setNewAsset({
       name: '',
-      description: ''
+      description: '',
+      organizationId: organization?.id ?? null
     });
   };
 
   // handleAddAttribute and handleCancelAddAttribute removed
 
-  const handleAddAsset = () => {
-    setShowAddAsset(true);
-  };
-
-  const handleCancelAddAsset = () => {
-    setShowAddAsset(false);
-    resetNewAsset();
-  };
+  // Duplicate handleAddAsset and handleCancelAddAsset removed; only the versions with route logic remain above.
 
   const handleSaveAsset = async () => {
-    if (!onAddAsset) return;
-
-    if (!newAsset.name.trim()) {
-      alert('Nome do ativo é obrigatório');
-      return;
-    }
-
+    // Only reload assets after modal asset creation
     setAssetLoading(true);
     try {
-      await onAddAsset(newAsset);
+      await handleReloadAssets();
       setShowAddAsset(false);
       resetNewAsset();
       if (typeof onAssetsChanged === 'function') {
         onAssetsChanged();
       }
     } catch (error) {
-      console.error('Erro ao criar ativo:', error);
-      alert('Erro ao criar ativo. Tente novamente.');
+      console.error('Erro ao atualizar lista de ativos:', error);
+      alert('Erro ao atualizar lista de ativos. Tente novamente.');
     } finally {
       setAssetLoading(false);
     }
   };
 
-  const handleAssetChange = (field: keyof NewAsset, value: string) => {
+  const handleAssetChange = React.useCallback((field: keyof NewAsset, value: string) => {
     setNewAsset(prev => ({
       ...prev,
       [field]: value
     }));
-  };
+  }, []);
 
   const refetchAsset = async (assetId: string) => {
     if (!assetId) return;
@@ -258,24 +272,24 @@ export default function AssetList({
         organizationId: typeof asset.organizationId === 'string' ? asset.organizationId : null,
         attributes: Array.isArray(asset.attributes)
           ? asset.attributes.map(attr => ({
-              ...attr,
-              description: typeof attr.description === 'string' ? attr.description : "",
-              organizationId: typeof attr.organizationId === 'string' ? attr.organizationId : null,
-              unit: typeof attr.unit === 'string' ? attr.unit : undefined,
-              values: Array.isArray(attr.values)
-                ? attr.values.map(val => {
-                    const v = val as any;
-                    return {
-                      id: v.id || '',
-                      assetInstanceId: v.assetInstanceId || v.asset_id || '',
-                      attributeId: v.attributeId || v.attribute_id || '',
-                      value: v.value,
-                      createdAt: v.createdAt || v.created_at || '',
-                      updatedAt: v.updatedAt || v.updated_at || '',
-                    };
-                  })
-                : []
-            }))
+            ...attr,
+            description: typeof attr.description === 'string' ? attr.description : "",
+            organizationId: typeof attr.organizationId === 'string' ? attr.organizationId : null,
+            unit: typeof attr.unit === 'string' ? attr.unit : undefined,
+            values: Array.isArray(attr.values)
+              ? attr.values.map(val => {
+                const v = val as any;
+                return {
+                  id: v.id || '',
+                  assetInstanceId: v.assetInstanceId || v.asset_id || '',
+                  attributeId: v.attributeId || v.attribute_id || '',
+                  value: v.value,
+                  createdAt: v.createdAt || v.created_at || '',
+                  updatedAt: v.updatedAt || v.updated_at || '',
+                };
+              })
+              : []
+          }))
           : []
       };
       setSelectedAsset(updatedAsset);
@@ -353,16 +367,20 @@ export default function AssetList({
   return (
     <>
       <div className="w-full mx-auto">
+        {/* Add Asset Button - prominent above asset list */}
+
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4">
           <div className="flex items-center gap-4">
             <h1 className="text-2xl ml-3 font-extrabold text-stuff-light">ativos <span className="text-stuff-light font-bold">({assets.length})</span></h1>
-            {onAddAsset && (
-              <Button size="sm" palette="success" onClick={handleAddAsset} iconBefore={<Plus size={16} />}> 
-                Novo Ativo
-              </Button>
-            )}
           </div>
           <div className="flex gap-4 w-full md:w-auto">
+            <Button
+              size="md"
+              palette="success"
+              className="py-3"
+              title="adicionar novo ativo"
+              onClick={handleAddAsset}
+            ><Plus size={24} /></Button>
             <Button
               size="md"
               onClick={handleReloadAssets}
@@ -424,12 +442,10 @@ export default function AssetList({
             <h3 className="text-lg font-semibold mb-1">Nenhum ativo encontrado</h3>
             <p className="text-stuff-mid mb-4">
               {searchTerm || !(filterToggle.active && filterToggle.trash)
-                ? "Nenhum ativo corresponde aos critérios de busca."
+                ? "Nenhum cccccativo corresponde aos critérios de busca."
                 : emptyMessage}
             </p>
-            {onAddAsset && (
-              <Button size="sm" palette="success" onClick={handleAddAsset} iconBefore={<Plus size={16} />}>Criar Primeiro Ativo</Button>
-            )}
+            <Button size="sm" palette="success" onClick={handleAddAsset} iconBefore={<Plus size={16} />}>Criar Primeiro Ativo</Button>
           </div>
         ) : (
           <>
@@ -456,10 +472,11 @@ export default function AssetList({
         open={showAddAsset}
         loading={assetLoading}
         newAsset={newAsset}
+        existingAssets={paginatedAssets}
         onChange={handleAssetChange}
         onCancel={handleCancelAddAsset}
         onSave={handleSaveAsset}
-  />
+      />
 
       {/* Asset Detail Modal */}
       <AssetDetailsModal

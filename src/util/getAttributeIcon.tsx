@@ -3,7 +3,7 @@ import { Calendar, CheckSquare, File, FileText, Hash, ListChecks, Package, Radio
 export const getAttributeIcon = (type: string) => {
     // All icons: white color, circular stuff-mid background
     const iconProps = { size: 20, className: "text-stuff-white" };
-    const bgClass = "flex items-center justify-center w-7 h-7 rounded-full bg-stuff-mid";
+    const bgClass = "flex items-center justify-center w-7 h-7 rounded-full bg-stuff-light";
     switch (type) {
         case "text":
             return (

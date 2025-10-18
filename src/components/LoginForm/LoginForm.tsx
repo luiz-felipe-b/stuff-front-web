@@ -90,8 +90,8 @@ const LoginForm: React.FC<LoginFormProps> = ({
         {loading ? "carregando..." : success ? "sucesso!" : "entrar"}
       </Button>
       <div className="flex flex-col gap-2 mt-2">
-        <a href="/forgot-password" className="text-sm text-stuff-dark hover:underline text-center">Esqueceu sua senha?</a>
-        <a href="/register" className="text-sm text-stuff-dark hover:underline text-center">Não tem uma conta? Crie uma agora!</a>
+        <a href="/forgot-password" className="text-sm font-bold text-stuff-light hover:underline text-center">esqueceu sua senha?</a>
+        <a href="/register" className="text-sm font-bold text-stuff-light hover:underline text-center">não tem uma conta? crie uma agora!</a>
       </div>
     </form>
   );

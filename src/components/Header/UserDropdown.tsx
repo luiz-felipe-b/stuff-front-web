@@ -37,7 +37,6 @@ const UserDropdown = () => {
       // Se der erro, ainda assim faz logout local
     }
     setUser(null);
-    setOrganization(null);
     router.push("/");
   }
 
@@ -73,7 +72,7 @@ const UserDropdown = () => {
           </button>
           <div className="border-t border-stuff-light my-1" />
           <button
-            className="flex items-center gap-2 px-5 py-2 text-danger-base hover:bg-danger-light transition-colors w-full text-left text-base cursor-pointer"
+            className="flex items-center gap-2 px-5 py-2 text-danger-base hover:bg-danger-light/60 transition-colors w-full text-left text-base cursor-pointer"
             onClick={handleLogout}
           >
             <LogOut size={20} className="text-danger-base" />

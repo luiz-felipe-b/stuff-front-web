@@ -9,6 +9,7 @@ import EditAttributeValueStep from "./EditAttributeValueStep";
 import Textarea from "../Input/Textarea";
 import Input from "../Input/Input";
 import Loader from "../Loader/Loader";
+import { getAttributeIcon } from "@/util/getAttributeIcon";
 
 export interface AssetDetailsModalProps {
   open: boolean;
@@ -71,7 +72,11 @@ const AssetDetailsModal: React.FC<AssetDetailsModalProps & { loading?: boolean }
         unit = rawValue.unit || unit;
       }
       draft.value = { scale, unit };
-    } else if (attr.type === "multiselection" || attr.type === "singleselection") {
+    } else if (
+      attr.type === "multiselection" ||
+      attr.type === "singleselection" ||
+      attr.type === "select"
+    ) {
       // Parse options
       let options: string[] = [];
       if (Array.isArray(attr.options)) {
@@ -96,7 +101,7 @@ const AssetDetailsModal: React.FC<AssetDetailsModalProps & { loading?: boolean }
         } else {
           draft.value = [];
         }
-      } else if (attr.type === "singleselection") {
+      } else if (attr.type === "select") {
         if (typeof rawValue === "string") {
           draft.value = rawValue;
         } else if (Array.isArray(rawValue) && rawValue.length > 0) {
@@ -212,19 +217,120 @@ const AssetDetailsModal: React.FC<AssetDetailsModalProps & { loading?: boolean }
                     let displayValue = "";
                     if (attr.type === "metric") {
                       const scale = rawValue ?? "";
-                      const unitLabels: Record<string, string> = {
-                        ton: "tonelada", kilogram: "quilograma", gram: "grama", kilometer: "quilômetro", meter: "metro", centimeter: "centímetro", square_meter: "metro quadrado", cubic_meter: "metro cúbico", mile: "milha", feet: "pé", degree: "grau", liter: "litro",
+                      // Singular and plural unit labels
+                      const unitLabels: Record<string, { singular: string; plural: string }> = {
+                        ton: { singular: "tonelada", plural: "toneladas" },
+                        kilogram: { singular: "quilograma", plural: "quilogramas" },
+                        gram: { singular: "grama", plural: "gramas" },
+                        kilometer: { singular: "quilômetro", plural: "quilômetros" },
+                        meter: { singular: "metro", plural: "metros" },
+                        centimeter: { singular: "centímetro", plural: "centímetros" },
+                        square_meter: { singular: "metro quadrado", plural: "metros quadrados" },
+                        cubic_meter: { singular: "metro cúbico", plural: "metros cúbicos" },
+                        mile: { singular: "milha", plural: "milhas" },
+                        feet: { singular: "pé", plural: "pés" },
+                        degree: { singular: "grau", plural: "graus" },
+                        liter: { singular: "litro", plural: "litros" },
+                        second: { singular: "segundo", plural: "segundos" },
+                        minute: { singular: "minuto", plural: "minutos" },
+                        hour: { singular: "hora", plural: "horas" },
+                        day: { singular: "dia", plural: "dias" },
+                        week: { singular: "semana", plural: "semanas" },
+                        month: { singular: "mês", plural: "meses" },
+                        year: { singular: "ano", plural: "anos" },
+                        // Accept plural keys as well for fallback
+                        toneladas: { singular: "tonelada", plural: "toneladas" },
+                        quilogramas: { singular: "quilograma", plural: "quilogramas" },
+                        gramas: { singular: "grama", plural: "gramas" },
+                        quilômetros: { singular: "quilômetro", plural: "quilômetros" },
+                        metros: { singular: "metro", plural: "metros" },
+                        centímetros: { singular: "centímetro", plural: "centímetros" },
+                        "metros quadrados": { singular: "metro quadrado", plural: "metros quadrados" },
+                        "metros cúbicos": { singular: "metro cúbico", plural: "metros cúbicos" },
+                        milhas: { singular: "milha", plural: "milhas" },
+                        pés: { singular: "pé", plural: "pés" },
+                        graus: { singular: "grau", plural: "graus" },
+                        litros: { singular: "litro", plural: "litros" },
+                        segundos: { singular: "segundo", plural: "segundos" },
+                        minutos: { singular: "minuto", plural: "minutos" },
+                        horas: { singular: "hora", plural: "horas" },
+                        dias: { singular: "dia", plural: "dias" },
+                        semanas: { singular: "semana", plural: "semanas" },
+                        meses: { singular: "mês", plural: "meses" },
+                        anos: { singular: "ano", plural: "anos" },
                       };
-                      const unit = attr.unit ? (unitLabels[attr.unit] || attr.unit) : "";
-                      displayValue = `${scale} ${unit}`.trim();
+                      // Prefer unit from value, fallback to attr, check all possible keys
+                      let unit = "";
+                      if (rawValue && typeof rawValue === "object") {
+                        unit = rawValue.unit || rawValue.metricUnit || rawValue.timeUnit || "";
+                      }
+                      if (!unit) {
+                        unit = attr.unit || attr.metricUnit || attr.timeUnit || "";
+                      }
+                      let label = unit;
+                      const isSingular = String(scale) === "1";
+                      if (unitLabels[unit]) {
+                        label = isSingular ? unitLabels[unit].singular : unitLabels[unit].plural;
+                      }
+                      displayValue = `${scale} ${label}`.trim();
                     } else if (attr.type === "timemetric") {
                       let scale = "";
+                      let unit = "";
                       if (rawValue && typeof rawValue === "object" && rawValue !== null) {
                         scale = rawValue.scale ?? rawValue.value ?? "";
+                        unit = rawValue.unit || rawValue.timeUnit || rawValue.metricUnit || attr.unit || attr.timeUnit || attr.metricUnit || "";
                       } else if (typeof rawValue === "string" || typeof rawValue === "number") {
                         scale = String(rawValue);
+                        unit = attr.unit || attr.timeUnit || attr.metricUnit || "";
                       }
-                      displayValue = `${scale} ${rawValue.unit || attr.unit || ""}`.trim();
+                      // Singular/plural logic
+                      const unitLabels: Record<string, { singular: string; plural: string }> = {
+                        ton: { singular: "tonelada", plural: "toneladas" },
+                        kilogram: { singular: "quilograma", plural: "quilogramas" },
+                        gram: { singular: "grama", plural: "gramas" },
+                        kilometer: { singular: "quilômetro", plural: "quilômetros" },
+                        meter: { singular: "metro", plural: "metros" },
+                        centimeter: { singular: "centímetro", plural: "centímetros" },
+                        square_meter: { singular: "metro quadrado", plural: "metros quadrados" },
+                        cubic_meter: { singular: "metro cúbico", plural: "metros cúbicos" },
+                        mile: { singular: "milha", plural: "milhas" },
+                        feet: { singular: "pé", plural: "pés" },
+                        degree: { singular: "grau", plural: "graus" },
+                        liter: { singular: "litro", plural: "litros" },
+                        second: { singular: "segundo", plural: "segundos" },
+                        minute: { singular: "minuto", plural: "minutos" },
+                        hour: { singular: "hora", plural: "horas" },
+                        day: { singular: "dia", plural: "dias" },
+                        week: { singular: "semana", plural: "semanas" },
+                        month: { singular: "mês", plural: "meses" },
+                        year: { singular: "ano", plural: "anos" },
+                        // Accept plural keys as well for fallback
+                        toneladas: { singular: "tonelada", plural: "toneladas" },
+                        quilogramas: { singular: "quilograma", plural: "quilogramas" },
+                        gramas: { singular: "grama", plural: "gramas" },
+                        quilômetros: { singular: "quilômetro", plural: "quilômetros" },
+                        metros: { singular: "metro", plural: "metros" },
+                        centímetros: { singular: "centímetro", plural: "centímetros" },
+                        "metros quadrados": { singular: "metro quadrado", plural: "metros quadrados" },
+                        "metros cúbicos": { singular: "metro cúbico", plural: "metros cúbicos" },
+                        milhas: { singular: "milha", plural: "milhas" },
+                        pés: { singular: "pé", plural: "pés" },
+                        graus: { singular: "grau", plural: "graus" },
+                        litros: { singular: "litro", plural: "litros" },
+                        segundos: { singular: "segundo", plural: "segundos" },
+                        minutos: { singular: "minuto", plural: "minutos" },
+                        horas: { singular: "hora", plural: "horas" },
+                        dias: { singular: "dia", plural: "dias" },
+                        semanas: { singular: "semana", plural: "semanas" },
+                        meses: { singular: "mês", plural: "meses" },
+                        anos: { singular: "ano", plural: "anos" },
+                      };
+                      let label = unit;
+                      const isSingular = String(scale) === "1";
+                      if (unitLabels[unit]) {
+                        label = isSingular ? unitLabels[unit].singular : unitLabels[unit].plural;
+                      }
+                      displayValue = `${scale} ${label}`.trim();
                     } else if (attr.type === "multiselection") {
                       if (Array.isArray(rawValue)) {
                         displayValue = rawValue.filter(Boolean).join(", ");
@@ -251,7 +357,7 @@ const AssetDetailsModal: React.FC<AssetDetailsModalProps & { loading?: boolean }
                     return (
                       <div key={attr.id || idx} className="flex items-center gap-2 mb-2 px-4 py-2 border-b-4 border-2 rounded-2xl border-stuff-light shadow-[4px_4px_0_0_rgba(0,0,0,0.1)]">
                         <div className="w-1/2 truncate" title={attr.name}>{attr.name}</div>
-                        <div className="w-1/2 flex gap-2 items-center truncate" title={attr.type}>{typeLabels[attr.type] || attr.type}</div>
+                        <div className="w-1/2 flex gap-2 items-center truncate" title={attr.type}>{getAttributeIcon(attr.type)}{typeLabels[attr.type] || attr.type}</div>
                         <div className="w-1/2 truncate" title={displayValue}>{displayValue}</div>
                         <div className="w-1/6 flex gap-2 justify-center">
                           <Button variant="primary" palette="default" size="sm" className="p-1" title="Editar" onClick={() => handleEditAttribute(idx)}>
@@ -272,7 +378,7 @@ const AssetDetailsModal: React.FC<AssetDetailsModalProps & { loading?: boolean }
               </div>
               <div className="flex justify-end gap-3 mt-6">
                 <Button palette="danger" size="md" onClick={onClose}>
-                  Cancelar
+                  cancelar
                 </Button>
                 <Button palette="success" size="md" onClick={async () => {
                   let success = true;
@@ -338,21 +444,21 @@ const AssetDetailsModal: React.FC<AssetDetailsModalProps & { loading?: boolean }
                           await attributesApi.patchAttributesvalueAttributeValueId(body, { params: { attributeValueId: valueId } });
                           anyPatched = true;
                         } else {
-                          toast.error(`Não foi possível atualizar o valor do atributo "${attr.name}" porque ele ainda não existe.`);
+                          toast.error(`não foi possível atualizar o valor do atributo "${attr.name}" porque ele ainda não existe.`);
                         }
                       }
                     }
-                    toast.success("Alterações salvas!");
+                    toast.success("alterações salvas!");
                   } catch (err) {
                     success = false;
-                    toast.error("Erro ao salvar alterações de atributos ou ativo");
+                    toast.error("erro ao salvar alterações de atributos ou ativo");
                   }
                   if (onUpdateAsset) {
                     onUpdateAsset({ name: asset.name, description: asset.description });
                   }
                   onClose();
                 }}>
-                  Salvar alterações
+                  salvar alterações
                 </Button>
               </div>
             </div>

@@ -77,14 +77,13 @@ const LoginPage: React.FC = () => {
 
   return (
   <main className="min-h-screen flex flex-col md:flex-row items-center justify-center bg-[url('/pattern_faded.png')] bg-repeat bg-[length:98px_98px]">
-      {/* Left: Form Section */}
-  <section className="w-full md:max-w-[560px] h-screen md:h-auto flex flex-col px-12 py-12 bg-stuff-white rounded-none md:rounded-2xl shadow-none md:shadow-[0_8px_32px_rgba(0,0,0,0.08)]">
+  <section className="w-full md:max-w-[560px] h-screen md:h-auto flex flex-col px-12 py-12 bg-stuff-white rounded-none md:rounded-2xl shadow-none md:shadow-[8px_8px_0_0_rgba(0,0,0,0.1)] border-2 border-stuff-light">
     <div className="flex flex-col justify-center items-center h-full w-full">
       <div className="h-full"></div>
       <img src="/logo-stuff-orange.svg" alt="Stuff logo" className="h-16 mb-32" />
       <h2 className="text-3xl md:text-3xl font-onest font-extrabold
        text-stuff-light">E aí? É bom te ver de novo!</h2>
-      <p className="text-stuff-black text-md mb-8">faça seu login e organize-se agora mesmo</p>
+      <p className="text-stuff-gray-100 text-md mb-8">faça seu login e organize-se agora mesmo</p>
       <LoginForm
         loading={loading}
         error={error}

@@ -1,3 +1,4 @@
+
 @import url('https://fonts.googleapis.com/css2?family=Onest:wght@100..900&display=swap');
 
 @import 'tailwindcss';
@@ -55,14 +56,14 @@
 /* Universal custom scrollbar styling */
 html {
   scrollbar-width: thin;
-  scrollbar-color: var(--color-stuff-mid) transparent;
+  scrollbar-color: var(--color-stuff-light) transparent;
 }
 html::-webkit-scrollbar, body::-webkit-scrollbar, *::-webkit-scrollbar {
   width: 8px;
   background: transparent !important;
 }
 html::-webkit-scrollbar-thumb, body::-webkit-scrollbar-thumb, *::-webkit-scrollbar-thumb {
-  background: var(--color-stuff-mid);
+  background: var(--color-stuff-light);
   border-radius: 8px;
 }
 html::-webkit-scrollbar-track, body::-webkit-scrollbar-track, *::-webkit-scrollbar-track {

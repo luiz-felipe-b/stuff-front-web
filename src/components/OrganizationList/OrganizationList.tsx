@@ -83,7 +83,7 @@ const OrganizationList: React.FC<OrganizationListProps> = ({
         paginatedOrgs.map((org) => (
           <div
             key={org.id}
-            className="relative bg-white border-2 border-stuff-mid rounded-xl shadow-[8px_8px_0_0_rgba(0,0,0,0.1)] p-5 cursor-pointer hover:bg-stuff-high/20 transition group flex"
+            className="relative bg-white border-2 border-stuff-light rounded-xl shadow-[8px_8px_0_0_rgba(0,0,0,0.1)] p-5 cursor-pointer hover:bg-stuff-high/20 transition group flex"
             onClick={() => onSelect(org)}
           >
             {/* <Button
@@ -99,7 +99,7 @@ const OrganizationList: React.FC<OrganizationListProps> = ({
               }}
             /> */}
             <Building
-              className="mr-4 text-stuff-mid"
+              className="mr-4 text-stuff-light"
             />
             <div className="flex flex-col">
               <span className="font-semibold text-xl text-stuff-black truncate mb-1">{org.name}</span>

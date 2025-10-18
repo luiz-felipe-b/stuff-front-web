@@ -104,16 +104,8 @@ const endpoints = makeApi([
                 assetInstanceId: z.string().uuid(),
                 attributeId: z.string().uuid(),
                 value: z.string(),
-                createdAt: z
-                  .string()
-                  .datetime({ offset: true })
-                  .optional()
-                  .default({}),
-                updatedAt: z
-                  .string()
-                  .datetime({ offset: true })
-                  .optional()
-                  .default({}),
+                createdAt: z.string().datetime({ offset: true }),
+                updatedAt: z.string().datetime({ offset: true }),
               })
             )
             .optional()
@@ -261,16 +253,8 @@ const endpoints = makeApi([
               assetInstanceId: z.string().uuid(),
               attributeId: z.string().uuid(),
               value: z.string(),
-              createdAt: z
-                .string()
-                .datetime({ offset: true })
-                .optional()
-                .default({}),
-              updatedAt: z
-                .string()
-                .datetime({ offset: true })
-                .optional()
-                .default({}),
+              createdAt: z.string().datetime({ offset: true }),
+              updatedAt: z.string().datetime({ offset: true }),
             })
           )
           .optional()

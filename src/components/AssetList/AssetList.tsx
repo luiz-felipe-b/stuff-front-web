@@ -72,8 +72,6 @@ interface NewAsset {
 interface AssetListProps {
   assets: Asset[];
   organization?: { id: string } | null;
-  onEdit?: (asset: Asset) => void;
-  onDelete?: (asset: Asset) => void;
   onView?: (asset: Asset) => void;
   onAddAttribute?: () => Promise<void>;
   onAssetsChanged?: () => void;
@@ -93,8 +91,6 @@ type FilterToggle = {
 export default function AssetList({
   assets: initialAssets,
   organization,
-  onEdit,
-  onDelete,
   onAddAttribute,
   onAssetsChanged,
   loading = false,
@@ -481,12 +477,21 @@ export default function AssetList({
       {/* Asset Detail Modal */}
       <AssetDetailsModal
         open={!!selectedAsset}
-        asset={selectedAsset}
+        asset={selectedAsset ?? {
+          id: "",
+          organizationId: null,
+          templateId: null,
+          creatorUserId: "",
+          name: "",
+          description: "",
+          trashBin: false,
+          createdAt: "",
+          updatedAt: "",
+          attributes: [],
+        }}
         loading={attributeLoading}
         onClose={closeAssetModal}
-        onEdit={onEdit}
-        onDelete={onDelete}
-        onAttributeSaved={handleAttributeSaved}
+        
       />
     </>
   );

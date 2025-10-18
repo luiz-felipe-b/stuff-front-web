@@ -111,8 +111,8 @@ const AddAssetModal: React.FC<AddAssetModalProps> = ({
       let assetId: string | null = null;
       if (Array.isArray(assetRes.data)) {
         assetId = assetRes.data[0]?.id ?? null;
-      } else if (assetRes.data && typeof assetRes.data === 'object' && 'id' in assetRes.data) {
-        assetId = assetRes.data.id;
+      } else if (assetRes && assetRes.data && typeof assetRes.data === 'object' && 'id' in assetRes.data) {
+        assetId = (assetRes.data as { id?: string }).id ?? null;
       }
       console.log(assetRes)
       if (!assetId) throw new Error("Falha ao criar ativo");

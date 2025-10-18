@@ -5,3 +5,5 @@ export { AssetsApi } from "./assets";
 export { AttributesApi } from "./attributes";
 export { AiApi } from "./ai";
 export { Ai_functionalitiesApi } from "./ai_functionalities";
+export { ReportsApi } from "./reports";
+export { DefaultApi } from "./Default";

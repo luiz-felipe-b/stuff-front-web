@@ -899,6 +899,76 @@ const endpoints = makeApi([
       },
     ],
   },
+  {
+    method: "get",
+    path: "/organizations/:id/reports",
+    alias: "getOrganizationsIdreports",
+    description: `Get all reports for an organization`,
+    requestFormat: "json",
+    parameters: [
+      {
+        name: "id",
+        type: "Path",
+        schema: z.string().uuid(),
+      },
+    ],
+    response: z.object({
+      message: z.string().optional().default("Organization reports found"),
+      data: z.array(
+        z.object({
+          id: z.string().uuid(),
+          authorId: z.string().uuid().nullish(),
+          organizationId: z.string().uuid(),
+          title: z.string(),
+          file_url: z.string().url().nullish(),
+          createdAt: z.string(),
+          updatedAt: z.string(),
+        })
+      ),
+    }),
+    errors: [
+      {
+        status: 400,
+        description: `Bad Request`,
+        schema: z.object({
+          error: z.string().optional().default("Bad Request"),
+          message: z.string(),
+        }),
+      },
+      {
+        status: 401,
+        description: `Unauthorized`,
+        schema: z.object({
+          error: z.string().optional().default("Unauthorized"),
+          message: z.string(),
+        }),
+      },
+      {
+        status: 403,
+        description: `Forbidden`,
+        schema: z.object({
+          error: z.string().optional().default("Forbidden"),
+          message: z.string(),
+        }),
+      },
+      {
+        status: 404,
+        description: `Not Found`,
+        schema: z.object({
+          error: z.string().optional().default("Not Found"),
+          message: z.string(),
+        }),
+      },
+      {
+        status: 500,
+        description: `Internal Server Error`,
+        schema: z.object({
+          error: z.string().optional().default("Internal Server Error"),
+          message: z.string(),
+        }),
+      },
+    ],
+  },
 ]);
 
 export const OrganizationsApi = new Zodios(endpoints);

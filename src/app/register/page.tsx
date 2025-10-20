@@ -80,7 +80,7 @@ const RegisterPage: React.FC = () => {
 						const acceptEmail = searchParams.get("email");
 						const acceptOrg = searchParams.get("organization");
 						if (redirect === "accept" && acceptEmail && acceptOrg) {
-							router.push(`/login?redirect=accept&email=${encodeURIComponent(acceptEmail)}&organization=${encodeURIComponent(acceptOrg)}`);
+							router.push(`/login?redirect=accept&email=${encodeURIComponent(acceptEmail)}&org=${encodeURIComponent(acceptOrg)}`);
 						} else {
 							setTimeout(() => {
 								router.push("/login");

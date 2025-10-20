@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import LoginForm from "../../components/LoginForm/LoginForm";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useUser } from "../../context/UserContext";
 import { authApi, userApi } from "@/services/api";
 
@@ -14,6 +14,7 @@ const LoginPage: React.FC = () => {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { setUser } = useUser();
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -52,7 +53,15 @@ const LoginPage: React.FC = () => {
       localStorage.setItem("userId", userId);
       setSuccess(true);
 
-      router.push(`/organization`);
+      // Redirecionamento especial para aceite de convite
+      const redirect = searchParams.get("redirect");
+      const acceptEmail = searchParams.get("email");
+      const acceptOrg = searchParams.get("org");
+      if (redirect === "accept" && acceptEmail && acceptOrg) {
+        router.push(`/organization/accept?email=${encodeURIComponent(acceptEmail)}&org=${encodeURIComponent(acceptOrg)}`);
+      } else {
+        router.push(`/organization`);
+      }
     } catch (error: any) {
       console.error("erro no login:", error);
 

@@ -9,7 +9,7 @@ import { Check, X, Minus, Eye, EyeOff } from "lucide-react";
 import InputButton from "@/components/Input/InputButton";
 import Loader from "@/components/Loader/Loader";
 import { userApi } from "@/services/api";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 // import "../../styles/register.css";
 // import { FaEnvelope, FaUser, FaLock, FaEyeSlash, FaEye } from "react-icons/fa";
 // import { RegisterService } from "../../services/register_service";
@@ -29,7 +29,8 @@ const RegisterPage: React.FC = () => {
 	const [loading, setLoading] = useState(false);
 	const [error, setError] = useState("");
 	const [success, setSuccess] = useState(false);
-	const router = useRouter();
+		const router = useRouter();
+		const searchParams = useSearchParams();
 
 	const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 		const { name, value } = e.target;
@@ -72,9 +73,19 @@ const RegisterPage: React.FC = () => {
 							email: formData.email.trim().toLowerCase(),
 							password: formData.password,
 						});
-				setSuccess(true);
-                
-				setTimeout(() =>  2000);
+						setSuccess(true);
+
+						// Redirecionamento especial para aceite de convite
+						const redirect = searchParams.get("redirect");
+						const acceptEmail = searchParams.get("email");
+						const acceptOrg = searchParams.get("organization");
+						if (redirect === "accept" && acceptEmail && acceptOrg) {
+							router.push(`/login?redirect=accept&email=${encodeURIComponent(acceptEmail)}&organization=${encodeURIComponent(acceptOrg)}`);
+						} else {
+							setTimeout(() => {
+								router.push("/login");
+							}, 2000);
+						}
 			} catch (err: any) {
 				let errorMessage = "Erro durante o registro";
 				if (err.message && err.message.includes("Credenciais de administrador")) {

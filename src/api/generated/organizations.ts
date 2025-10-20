@@ -23,12 +23,17 @@ const postOrganizationsIdmembers_Body = z.object({
 const patchOrganizationsIdmembersUserId_Body = z
   .object({ role: z.enum(["admin", "moderator", "user"]).default("user") })
   .partial();
+const postOrganizationsinviteMember_Body = z.object({
+  email: z.string().email(),
+  organizationId: z.string().uuid(),
+});
 
 export const schemas = {
   postOrganizations_Body,
   patchOrganizationsId_Body,
   postOrganizationsIdmembers_Body,
   patchOrganizationsIdmembersUserId_Body,
+  postOrganizationsinviteMember_Body,
 };
 
 const endpoints = makeApi([
@@ -925,6 +930,66 @@ const endpoints = makeApi([
           updatedAt: z.string(),
         })
       ),
+    }),
+    errors: [
+      {
+        status: 400,
+        description: `Bad Request`,
+        schema: z.object({
+          error: z.string().optional().default("Bad Request"),
+          message: z.string(),
+        }),
+      },
+      {
+        status: 401,
+        description: `Unauthorized`,
+        schema: z.object({
+          error: z.string().optional().default("Unauthorized"),
+          message: z.string(),
+        }),
+      },
+      {
+        status: 403,
+        description: `Forbidden`,
+        schema: z.object({
+          error: z.string().optional().default("Forbidden"),
+          message: z.string(),
+        }),
+      },
+      {
+        status: 404,
+        description: `Not Found`,
+        schema: z.object({
+          error: z.string().optional().default("Not Found"),
+          message: z.string(),
+        }),
+      },
+      {
+        status: 500,
+        description: `Internal Server Error`,
+        schema: z.object({
+          error: z.string().optional().default("Internal Server Error"),
+          message: z.string(),
+        }),
+      },
+    ],
+  },
+  {
+    method: "post",
+    path: "/organizations/invite-member",
+    alias: "postOrganizationsinviteMember",
+    description: `Send an email invitation to add a user to an organization`,
+    requestFormat: "json",
+    parameters: [
+      {
+        name: "body",
+        type: "Body",
+        schema: postOrganizationsinviteMember_Body,
+      },
+    ],
+    response: z.object({
+      message: z.string().optional().default("Invite email sent"),
+      data: z.unknown().nullable(),
     }),
     errors: [
       {

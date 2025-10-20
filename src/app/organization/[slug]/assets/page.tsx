@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import Header from "@/components/Header/header";
+import Header from "@/components/Header/Header";
 import { useSelectedOrganization } from "@/context/SelectedOrganizationContext";
 import { useRouter } from "next/navigation";
 import { assetsApi, organizationsApi } from "@/services/api";
@@ -70,9 +70,9 @@ const OrganizationAssetsPage = () => {
 			<main className="w-full h-full bg-stuff-white rounded-2xl shadow-[8px_8px_0_0_rgba(0,0,0,0.1)] p-8 flex flex-col border-2 border-stuff-light">
                 <div className="flex items-center gap-2 mb-2 text-stuff-light">
                     <Package/>
-				    <h1 className="text-2xl font-extrabold">Ativos de {organization.name}</h1>
+				    <h1 className="text-2xl font-extrabold">Ativos</h1>
                 </div>
-                <div className="mb-4 text-stuff-dark">
+                <div className="mb-4 text-stuff-gray-200">
                     seus ativos estão aqui
                 </div>
 				{loading ? (

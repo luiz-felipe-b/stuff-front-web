@@ -4,7 +4,7 @@
 
 
 import React, { useEffect } from 'react';
-import Header from '@/components/Header/header';
+import Header from '@/components/Header/Header';
 import { useUser } from "../../context/UserContext";
 import DashboardCard from '@/components/DashboardCard/DashboardCard';
 import { useSelectedOrganization } from "@/context/SelectedOrganizationContext";

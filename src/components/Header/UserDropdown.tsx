@@ -5,6 +5,7 @@ import { useSelectedOrganization } from "@/context/SelectedOrganizationContext";
 import { useRouter } from "next/navigation";
 import { useState, useRef, useEffect } from "react";
 import { User as UserIcon, ChevronDown, LogOut, UserRound } from "lucide-react";
+import { authApi } from "@/services/api";
 
 const UserDropdown = () => {
   const { user, setUser } = useUser();
@@ -32,17 +33,13 @@ const UserDropdown = () => {
 
   async function handleLogout() {
     try {
-      await fetch("/auth/logout", { method: "POST" });
+        await authApi.postAuthlogout(undefined);
     } catch (e) {
       // Se der erro, ainda assim faz logout local
     }
     setUser(null);
     router.push("/");
   }
-
-  // function handleLogin() {
-  //   router.push("/pages/login");
-  // }
 
   return (
     <div className="relative" ref={dropdownRef}>
@@ -62,20 +59,19 @@ const UserDropdown = () => {
         <ChevronDown className={`ml-2 text-stuff-light transition-transform ${open ? "rotate-180" : "rotate-0"}`} size={20} />
       </button>
       {open && (
-        <div className="absolute right-0 mt-2 min-w-[180px] bg-stuff-white rounded-b-xl border-x border-b border-stuff-light z-50 flex flex-col py-2 animate-fade-in shadow-[8px_8px_0_0_rgba(0,0,0,0.1)]">
+        <div className="absolute right-3 mt-2 min-w-[180px] bg-stuff-white rounded-b-xl border-x border-b border-stuff-light z-50 flex flex-col py-2 animate-fade-in shadow-[8px_8px_0_0_rgba(0,0,0,0.1)]">
           <button
-            className="flex items-center gap-2 px-5 py-2 text-stuff-dark hover:bg-stuff-light transition-colors w-full text-left text-base cursor-pointer"
-            onClick={() => {router.push("/pages/profile")}}
+            className="flex items-center gap-2 px-5 py-2 text-stuff-light hover:bg-stuff-light/10 transition-colors w-full text-left text-base cursor-pointer"
+            onClick={() => {router.push("/profile")}}
           >
-            <UserRound size={20} className="text-stuff-mid" />
+            <UserRound size={20} className="text-stuff-light" />
             perfil
           </button>
-          <div className="border-t border-stuff-light my-1" />
           <button
-            className="flex items-center gap-2 px-5 py-2 text-danger-base hover:bg-danger-light/60 transition-colors w-full text-left text-base cursor-pointer"
+            className="flex items-center gap-2 px-5 py-2 text-danger-light hover:bg-danger-light/10 transition-colors w-full text-left text-base cursor-pointer"
             onClick={handleLogout}
           >
-            <LogOut size={20} className="text-danger-base" />
+            <LogOut size={20} className="text-danger-light" />
             sair
           </button>
         </div>

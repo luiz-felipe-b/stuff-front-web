@@ -6,7 +6,7 @@ import { useUser } from "@/context/UserContext";
 import { useSelectedOrganization, Organization as OrgType } from "@/context/SelectedOrganizationContext";
 import Loader from "@/components/Loader/Loader";
 import OrganizationList from "@/components/OrganizationList/OrganizationList";
-import Header from "@/components/Header/header";
+import Header from "@/components/Header/Header";
 
 const SelectOrganizationPage = () => {
     const { user } = useUser();

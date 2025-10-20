@@ -363,8 +363,6 @@ export default function AssetList({
   return (
     <>
       <div className="w-full mx-auto">
-        {/* Add Asset Button - prominent above asset list */}
-
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4">
           <div className="flex items-center gap-4">
             <h1 className="text-2xl ml-3 font-extrabold text-stuff-light">ativos <span className="text-stuff-light font-bold">({filteredAssets.length})</span></h1>
@@ -429,19 +427,19 @@ export default function AssetList({
         </div>
 
         {reloading ? (
-          <div className="flex flex-col items-center justify-center py-12 h-[48vh] border-2 border-t-8 border-stuff-light rounded-2xl w-full bg-white">
+          <div className="flex flex-col items-center justify-center py-12 h-[48vh] border-2 border-t-8 border-stuff-light rounded-2xl w-full bg-stuff-white">
             <Loader label="recarregando ativos..." />
           </div>
         ) : filteredAssets.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-12 h-[48vh] border-2 border-t-8 border-stuff-light rounded-2xl w-full bg-white">
+          <div className="flex flex-col items-center justify-center py-12 h-[48vh] border-2 border-t-8 border-stuff-light rounded-2xl w-full bg-stuff-white">
             <CircleHelp size={48} className="text-stuff-light mb-2" />
-            <h3 className="text-lg font-semibold mb-1">Nenhum ativo encontrado</h3>
+            <h3 className="text-lg font-semibold mb-1">nenhum ativo encontrado</h3>
             <p className="text-stuff-mid mb-4">
               {searchTerm || !(filterToggle.active && filterToggle.trash)
                 ? "nenhum ativo corresponde aos critérios de busca."
                 : emptyMessage}
             </p>
-            <Button size="sm" palette="success" onClick={handleAddAsset} iconBefore={<Plus size={16} />}>Criar Primeiro Ativo</Button>
+            <Button size="sm" palette="success" onClick={handleAddAsset} iconBefore={<Plus size={16} />}>criar ativo</Button>
           </div>
         ) : (
           <>

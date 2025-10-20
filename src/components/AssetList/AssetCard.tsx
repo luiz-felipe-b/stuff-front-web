@@ -80,7 +80,7 @@ const AssetCard: React.FC<AssetCardProps> = ({ asset, onClick, showDescription =
         className={`flex flex-col rounded-xl px-6 py-4 transition cursor-pointer border-2 border-b-4 shadow-[2px_4px_0_0_rgba(0,0,0,0.1)] 
           ${asset.trashBin
             ? 'bg-stuff-white border-danger-light text-danger-light hover:bg-danger-light/20'
-            : 'bg-stuff-white border-stuff-light text-stuff-light hover:bg-stuff-high/40'}
+            : 'bg-stuff-white border-stuff-light text-stuff-light hover:bg-stuff-high/20'}
         `}
         onClick={() => onClick?.(asset)}
       >

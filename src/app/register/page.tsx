@@ -78,7 +78,7 @@ const RegisterPage: React.FC = () => {
 						// Redirecionamento especial para aceite de convite
 						const redirect = searchParams.get("redirect");
 						const acceptEmail = searchParams.get("email");
-						const acceptOrg = searchParams.get("organization");
+						const acceptOrg = searchParams.get("org");
 						if (redirect === "accept" && acceptEmail && acceptOrg) {
 							router.push(`/login?redirect=accept&email=${encodeURIComponent(acceptEmail)}&org=${encodeURIComponent(acceptOrg)}`);
 						} else {

@@ -59,7 +59,6 @@ export default function Header({ activeTab = "home", showNav = true, organizatio
                       href={organization ? `${orgBase}/reports` : "/organization"}
                       icon={ClipboardList}
                       active={activeTab === "reports"}
-                      disabled
                   >
                       relatórios
                   </HeaderNavLink>

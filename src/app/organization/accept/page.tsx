@@ -33,12 +33,14 @@ const AcceptOrganizationPage: React.FC = () => {
         // Busca dados do usuário
         const userResp = await userApi.getUsersIdentifier({ params: { identifier: email } });
         setUserData(userResp.data);
+
         // Busca dados da organização
         const orgResp = await organizationsApi.getOrganizationsIdentifier({ params: { identifier: organizationId } });
         setOrgData(orgResp.data);
+        console.log(userData)
         // Verifica login
         const userId = localStorage.getItem("userId");
-        if (!userId) {
+        if (!userId || userId !== userResp.data.id) {
           localStorage.setItem("accept_redirect_email", email);
           localStorage.setItem("accept_redirect_organization", organizationId);
           router.replace(`/login?redirect=accept&email=${encodeURIComponent(email)}&org=${encodeURIComponent(organizationId)}`);
@@ -85,10 +87,6 @@ const AcceptOrganizationPage: React.FC = () => {
     }
   }, [email, organizationId]);
 
-  // if (loading) {
-  //   return <Loader label="Verificando usuário..." />;
-  // }
-
   // Handler para aceitar convite
   const handleAccept = async () => {
     setAcceptLoading(true);
@@ -108,11 +106,16 @@ const AcceptOrganizationPage: React.FC = () => {
       setAcceptSuccess(true);
       toast.success("convite aceito com sucesso!");
     } catch (err: any) {
-      const msg = err?.response?.data?.message || err.message || "erro ao aceitar convite";
+      let msg = err?.response?.data?.message || err.message || "erro ao aceitar convite";
+      console.log(err)
+      if (err?.response?.data?.message.includes("duplicate")) {
+        msg = "você já é membro desta organização";
+      }
       setError(msg);
       toast.error(msg);
     } finally {
       setAcceptLoading(false);
+      router.replace(`/organization`);
     }
   };
 
@@ -127,7 +130,7 @@ const AcceptOrganizationPage: React.FC = () => {
       />
       <section className="relative z-10 w-full max-w-md bg-stuff-white rounded-2xl shadow-[8px_8px_0_0_rgba(0,0,0,0.1)] border-2 border-stuff-light p-8 flex flex-col items-center">
         {loading ? (
-          <Loader/>
+          <Loader />
         ) : (
           <>
             <img src="/logo-stuff-orange.svg" alt="Stuff logo" className="h-16 mb-8" />

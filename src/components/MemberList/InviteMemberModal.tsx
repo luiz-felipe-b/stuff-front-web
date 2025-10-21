@@ -87,7 +87,7 @@ const InviteMemberModal: React.FC<InviteMemberModalProps> = ({ open, onClose, or
                         disabled={emails.length === 0 || loading}
                         onClick={handleSendInvites}
                     >
-                        {loading ? <Loader size={24} color="#FFFFFF" /> : emails.length > 0 ? emails.length === 1 ? "enviar convite" : "enviar convites" : "nenhum e-mail adicionado"}
+                        {loading ? "enviando convites" : emails.length > 0 ? emails.length === 1 ? "enviar convite" : "enviar convites" : "nenhum e-mail adicionado"}
                     </Button>
                     <Button palette="danger" size="md" fullWidth onClick={onClose} disabled={loading}>
                         cancelar

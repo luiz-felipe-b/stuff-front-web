@@ -9,6 +9,7 @@ import MemberCard from "./MemberCard";
 import InviteMemberModal from "./InviteMemberModal";
 import { useSelectedOrganization } from "@/context/SelectedOrganizationContext";
 import router from "next/router";
+import PaginationControls from "../PaginationControls/PaginationControls";
 
 
 export interface Member {
@@ -61,6 +62,11 @@ const MemberList: React.FC<MemberListProps> = ({
       </div>
     );
   }
+  const PAGE_SIZE = 9;
+  const [page, setPage] = useState(1);
+  const totalPages = Math.ceil(members.length / PAGE_SIZE) || 1;
+  const paginatedMembers = members.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+
   return (
     <div className="flex flex-col gap-4">
       <InviteMemberModal
@@ -116,7 +122,7 @@ const MemberList: React.FC<MemberListProps> = ({
           </div>
         )}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {members.map((member) => (
+        {paginatedMembers.map((member) => (
           <MemberCard
             key={member.id}
             member={member}
@@ -126,6 +132,11 @@ const MemberList: React.FC<MemberListProps> = ({
           />
         ))}
         </div>
+        <PaginationControls
+          page={page}
+          totalPages={totalPages}
+          onPageChange={setPage}
+        />
       </div>
     </div>
   );

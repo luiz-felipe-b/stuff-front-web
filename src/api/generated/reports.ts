@@ -182,8 +182,8 @@ const endpoints = makeApi([
   },
   {
     method: "post",
-    path: "/reports/presigned-url",
-    alias: "postReportspresignedUrl",
+    path: "/reports/upload",
+    alias: "postReportsupload",
     requestFormat: "json",
     parameters: [
       {
@@ -195,6 +195,30 @@ const endpoints = makeApi([
     response: z.object({
       message: z.string(),
       data: z.object({ url: z.string().url(), key: z.string() }),
+    }),
+    errors: [
+      {
+        status: 400,
+        description: `Default Response`,
+        schema: z.object({ message: z.string(), data: z.unknown().nullable() }),
+      },
+    ],
+  },
+  {
+    method: "get",
+    path: "/reports/download",
+    alias: "getReportsdownload",
+    requestFormat: "json",
+    parameters: [
+      {
+        name: "key",
+        type: "Query",
+        schema: z.string().min(1),
+      },
+    ],
+    response: z.object({
+      message: z.string(),
+      data: z.object({ url: z.string().url() }),
     }),
     errors: [
       {

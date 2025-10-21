@@ -3,6 +3,7 @@ import { createApiClient as createUserApiClient } from "@/api/generated/user";
 import { createApiClient as createOrganizationsApiClient } from "@/api/generated/organizations";
 import { createApiClient as createAssetsApiClient } from "@/api/generated/assets";
 import { createApiClient as createAttributesApiClient } from "@/api/generated/attributes";
+import { createApiClient as createReportsApiClient } from "@/api/generated/reports";
 
 
 const BASE_URL = process.env.NEXT_PUBLIC_STUFF_API!;
@@ -12,3 +13,4 @@ export const userApi = createUserApiClient(BASE_URL);
 export const organizationsApi = createOrganizationsApiClient(BASE_URL);
 export const assetsApi = createAssetsApiClient(BASE_URL);
 export const attributesApi = createAttributesApiClient(BASE_URL);
+export const reportsApi = createReportsApiClient(BASE_URL);

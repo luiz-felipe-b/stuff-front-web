@@ -86,20 +86,6 @@ const OrganizationMembersPage = () => {
 		}
 	};
 
-	const onAddMember = async (email: string) => {
-		try {
-			// const token = localStorage.getItem("token");
-			// await organizationsApi.postOrganizationsIdmembers({
-			// 	params: { id: organization.id },
-			// 	data: { email },
-			// 	headers: token ? { Authorization: `Bearer ${token}` } : {},
-			// });
-			// fetchMembers(false);
-		} catch (err) {
-			setError("Erro ao adicionar membro.");
-		}
-	};
-
 	const onReload = async () => {
 		setReloading(true);
 		await fetchMembers(false);
@@ -133,7 +119,6 @@ const OrganizationMembersPage = () => {
 							loading={loading}
 							onUpdateRole={onUpdateRole}
 							onDelete={onDelete}
-							onAddMember={onAddMember}
 							onReload={onReload}
 							searchTerm={searchTerm}
 							onSearchTermChange={onSearchTermChange}

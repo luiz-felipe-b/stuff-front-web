@@ -1,11 +1,14 @@
 "use client";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import Loader from "@/components/Loader/Loader";
 import { Users, Plus, RefreshCw, Search, X } from "lucide-react";
 import Button from "../Button/Button";
 
 import Input from "../Input/Input";
 import MemberCard from "./MemberCard";
+import InviteMemberModal from "./InviteMemberModal";
+import { useSelectedOrganization } from "@/context/SelectedOrganizationContext";
+import router from "next/router";
 
 
 export interface Member {
@@ -22,7 +25,6 @@ interface MemberListProps {
   loading?: boolean;
   onUpdateRole: (userId: string, newRole: string) => void;
   onDelete: (userId: string) => void;
-  onAddMember: (email: string) => void;
   onReload: () => void;
   searchTerm: string;
   onSearchTermChange: (term: string) => void;
@@ -36,14 +38,21 @@ const MemberList: React.FC<MemberListProps> = ({
   loading = false,
   onUpdateRole,
   onDelete,
-  onAddMember,
   onReload,
   searchTerm = "",
   onSearchTermChange,
   reloading = false,
 }) => {
-  const [addEmail, setAddEmail] = React.useState("");
+  const [addEmail, setAddEmail] = useState("");
+  const [inviteModalOpen, setInviteModalOpen] = useState(false);
   const clearSearch = () => onSearchTermChange && onSearchTermChange("");
+  const { organization } = useSelectedOrganization();
+
+  useEffect(() => {
+    if (!organization) {
+      router.push('/organization');
+    }
+  }, [organization]);
 
   if (loading) {
     return (
@@ -52,25 +61,20 @@ const MemberList: React.FC<MemberListProps> = ({
       </div>
     );
   }
-  if (members.length === 0) {
-    return (
-      <div className="flex flex-col items-center justify-center py-8 text-stuff-gray-100">
-        <Users size={48} className="mb-2" />
-        <h3 className="text-lg font-semibold">Nenhum membro encontrado</h3>
-        <p>Adicione membros à organização usando o formulário acima.</p>
-      </div>
-    );
-  }
   return (
     <div className="flex flex-col gap-4">
+      <InviteMemberModal
+        open={inviteModalOpen}
+        onClose={() => setInviteModalOpen(false)}
+        organizationId={organization?.id || ""}
+      />
       <div className="flex gap-4 w-full md:w-auto">
         <Button
           size="md"
           palette="success"
           className="py-3"
           title="adicionar novo membro"
-          onClick={() => onAddMember && onAddMember(addEmail)}
-          disabled={!addEmail}
+          onClick={() => setInviteModalOpen(true)}
         >
           <Plus size={24} />
         </Button>
@@ -99,6 +103,18 @@ const MemberList: React.FC<MemberListProps> = ({
         </div>
       </div>
       <div className="flex flex-col py-2 px-2 h-[48vh] border-2 border-t-8 border-stuff-light rounded-2xl w-full bg-stuff-white">
+        {loading && (
+          <div className="flex flex-col items-center justify-center py-8">
+            <Loader label="Carregando membros..." />
+          </div>
+        )}
+        {members.length === 0 && (
+          <div className="flex flex-col items-center justify-center py-8 text-stuff-gray-100">
+            <Users size={48} className="mb-2" />
+            <h3 className="text-lg font-semibold">Nenhum membro encontrado</h3>
+            <p>Adicione membros à organização usando o formulário acima.</p>
+          </div>
+        )}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {members.map((member) => (
           <MemberCard
@@ -110,7 +126,6 @@ const MemberList: React.FC<MemberListProps> = ({
           />
         ))}
         </div>
-
       </div>
     </div>
   );

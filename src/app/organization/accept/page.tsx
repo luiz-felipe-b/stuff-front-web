@@ -85,9 +85,9 @@ const AcceptOrganizationPage: React.FC = () => {
     }
   }, [email, organizationId]);
 
-  if (loading) {
-    return <Loader label="Verificando usuário..." />;
-  }
+  // if (loading) {
+  //   return <Loader label="Verificando usuário..." />;
+  // }
 
   // Handler para aceitar convite
   const handleAccept = async () => {
@@ -95,7 +95,7 @@ const AcceptOrganizationPage: React.FC = () => {
     setError("");
     try {
       if (!user) {
-        toast.error("Usuário não autenticado.");
+        toast.error("usuário não autenticado.");
         setAcceptLoading(false);
         return;
       }
@@ -106,9 +106,9 @@ const AcceptOrganizationPage: React.FC = () => {
         params: { id: organizationId }
       });
       setAcceptSuccess(true);
-      toast.success("Convite aceito com sucesso! Você já faz parte da organização.");
+      toast.success("convite aceito com sucesso!");
     } catch (err: any) {
-      const msg = err?.response?.data?.message || err.message || "Erro ao aceitar convite";
+      const msg = err?.response?.data?.message || err.message || "erro ao aceitar convite";
       setError(msg);
       toast.error(msg);
     } finally {
@@ -117,27 +117,40 @@ const AcceptOrganizationPage: React.FC = () => {
   };
 
   return (
-    <main className="min-h-screen flex flex-col items-center justify-center bg-[url('/pattern_faded.png')] bg-repeat bg-[length:98px_98px]">
-      <section className="w-full max-w-md bg-stuff-white rounded-2xl shadow-[8px_8px_0_0_rgba(0,0,0,0.1)] border-2 border-stuff-light p-8 flex flex-col items-center">
-        <img src="/logo-stuff-orange.svg" alt="Stuff logo" className="h-16 mb-8" />
-        <h2 className="text-xl font-regular text-stuff-light mb-2">Você foi convidado a participar de</h2>
-        {orgData && (
-          <div className="flex flex-col items-center mb-4">
-            <span className="text-xl font-extrabold text-stuff-light">{orgData.name}</span>
-          </div>
+    <main className="min-h-screen flex flex-col items-center justify-center bg-[url('/pattern_faded.png')] bg-repeat bg-[length:98px_98px] relative overflow-hidden">
+      {/* Envelope background */}
+      <img
+        src="/envelope.png"
+        alt="envelope"
+        className="pointer-events-none select-none absolute z-0 left-1/2 top-4/9 -translate-x-1/2 -translate-y-1/2 w-[800px] max-w-[200vw] -rotate-6 drop-shadow-[8px_8px_0_rgba(0,0,0,0.1)]"
+        aria-hidden="true"
+      />
+      <section className="relative z-10 w-full max-w-md bg-stuff-white rounded-2xl shadow-[8px_8px_0_0_rgba(0,0,0,0.1)] border-2 border-stuff-light p-8 flex flex-col items-center">
+        {loading ? (
+          <Loader/>
+        ) : (
+          <>
+            <img src="/logo-stuff-orange.svg" alt="Stuff logo" className="h-16 mb-8" />
+            <h2 className="text-xl font-regular text-stuff-light mb-2">Você foi convidado a participar de</h2>
+            {orgData && (
+              <div className="flex flex-col items-center mb-4">
+                <span className="text-xl font-extrabold text-stuff-light">{orgData.name}</span>
+              </div>
+            )}
+            <div className="h-12"></div>
+            <Button
+              palette="success"
+              size="md"
+              fullWidth
+              iconBefore={<Check className="h-5 w-5" />}
+              loading={acceptLoading}
+              disabled={acceptLoading}
+              onClick={handleAccept}
+            >
+              aceitar convite
+            </Button>
+          </>
         )}
-        <div className="h-12"></div>
-        <Button
-          palette="success"
-          size="md"
-          fullWidth
-          iconBefore={<Check className="h-5 w-5" />}
-          loading={acceptLoading}
-          disabled={acceptLoading}
-          onClick={handleAccept}
-        >
-          aceitar convite
-        </Button>
       </section>
     </main>
   );

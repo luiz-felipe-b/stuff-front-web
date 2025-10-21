@@ -32,7 +32,7 @@ const MemberCard: React.FC<MemberCardProps> = ({ member, loading, onUpdateRole, 
 
   return (
     <div
-      className={`flex flex-row items-center rounded-xl px-6 py-4 transition cursor-pointer border-2 border-b-4 shadow-[4px_4px_0_0_rgba(0,0,0,0.1)] bg-stuff-white border-stuff-light text-stuff-light hover:bg-stuff-high/20 w-full max-w-2xl`}
+      className={`flex flex-row items-center rounded-xl px-6 py-4 transition border-2 border-b-4 shadow-[4px_4px_0_0_rgba(0,0,0,0.1)] bg-stuff-white border-stuff-light text-stuff-light w-full max-w-2xl`}
     >
       {/* Avatar */}
       <div className="flex items-center justify-center w-12 h-12 rounded-full bg-stuff-light">

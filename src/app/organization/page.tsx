@@ -4,7 +4,6 @@ import { useRouter } from "next/navigation";
 import { organizationsApi } from "@/services/api";
 import { useUser } from "@/context/UserContext";
 import { useSelectedOrganization, Organization as OrgType } from "@/context/SelectedOrganizationContext";
-import Loader from "@/components/Loader/Loader";
 import OrganizationList from "@/components/OrganizationList/OrganizationList";
 import Header from "@/components/Header/Header";
 

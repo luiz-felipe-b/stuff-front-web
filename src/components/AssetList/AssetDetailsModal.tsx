@@ -160,7 +160,7 @@ const AssetDetailsModal: React.FC<AssetDetailsModalProps & { loading?: boolean }
   const showLoader = loading || !asset || !asset.id;
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-stuff-black/40" onClick={onClose}>
-      <div className="flex flex-col gap-6 p-6 w-full max-w-4xl bg-stuff-white rounded-2xl border-2 border-stuff-light relative" onClick={e => e.stopPropagation()}>
+      <div className="flex flex-col gap-6 p-6 w-full max-w-4xl bg-stuff-white rounded-2xl border-2 border-stuff-light relative shadow-[8px_8px_0_0_rgba(0,0,0,0.1)]" onClick={e => e.stopPropagation()}>
         <button className="absolute top-4 right-4 text-stuff-light hover:bg-stuff-mid/20 rounded-full p-2 transition cursor-pointer" onClick={onClose}>
           <X size={22} />
         </button>

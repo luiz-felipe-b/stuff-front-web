@@ -1,6 +1,6 @@
 "use client"
 
-import { Home, Building, Boxes, Users, Settings,  } from "lucide-react";
+import { Home, Building, Boxes, Users, Settings, ClipboardList,  } from "lucide-react";
 
 // import "./header.css";
 
@@ -57,7 +57,7 @@ export default function Header({ activeTab = "home", showNav = true, organizatio
                   </HeaderNavLink>
                   <HeaderNavLink
                       href={organization ? `${orgBase}/reports` : "/organization"}
-                      icon={Boxes}
+                      icon={ClipboardList}
                       active={activeTab === "reports"}
                       disabled
                   >

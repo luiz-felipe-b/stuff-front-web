@@ -5,7 +5,6 @@ import { assetsApi, organizationsApi } from "@/services/api";
 import Header from "@/components/Header/Header";
 import { useUser } from "@/context/UserContext";
 import { useSelectedOrganization } from "@/context/SelectedOrganizationContext";
-import "./style.css";
 import DashboardCard from "@/components/DashboardCard/DashboardCard";
 
 interface Organization {

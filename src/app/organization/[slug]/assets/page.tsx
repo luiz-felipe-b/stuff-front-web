@@ -66,7 +66,7 @@ const OrganizationAssetsPage = () => {
 
 	return (
 		<div className="h-full w-full flex items-center flex-col p-8">
-			<Header activeTab="assets" />
+			<Header activeTab="assets" organizationName={organization.name} />
 			<main className="w-full h-full bg-stuff-white rounded-2xl shadow-[8px_8px_0_0_rgba(0,0,0,0.1)] p-8 flex flex-col border-2 border-stuff-light">
                 <div className="flex items-center gap-2 mb-2 text-stuff-light">
                     <Package/>

@@ -31,7 +31,7 @@ const AcceptOrganizationPage: React.FC = () => {
       }
       try {
         // Busca dados do usuário
-        const userResp = await userApi.getUsersIdentifier({ params: { identifier: email } });
+        const userResp = await userApi.getUsersbyEmail({ queries: { email: email } });
         setUserData(userResp.data);
 
         // Busca dados da organização

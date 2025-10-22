@@ -108,7 +108,7 @@ const MemberList: React.FC<MemberListProps> = ({
           )}
         </div>
       </div>
-      <div className="flex flex-col py-2 px-2 h-[48vh] border-2 border-t-8 border-stuff-light rounded-2xl w-full bg-stuff-white">
+      <div className="flex flex-col py-2 px-2 h-[48vh] border-2 border-t-8 overflow-y-auto border-stuff-light rounded-2xl w-full bg-stuff-white">
         {loading && (
           <div className="flex flex-col items-center justify-center py-8">
             <Loader label="Carregando membros..." />

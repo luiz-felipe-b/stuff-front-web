@@ -5,13 +5,14 @@ import { useSelectedOrganization } from "@/context/SelectedOrganizationContext";
 import { useRouter } from "next/navigation";
 import { useState, useRef, useEffect } from "react";
 import { User as UserIcon, ChevronDown, LogOut, UserRound } from "lucide-react";
+import ProfileModal from "@/components/Profile/ProfileModal";
 import { authApi } from "@/services/api";
 
 const UserDropdown = () => {
   const { user, setUser } = useUser();
-  const { setOrganization } = useSelectedOrganization();
   const router = useRouter();
   const [open, setOpen] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -50,7 +51,7 @@ const UserDropdown = () => {
         aria-haspopup="true"
         aria-expanded={open}
       >
-        <span className="w-10 h-10 flex items-center justify-center rounded-full bg-stuff-light text-stuff-white font-bold text-xl">
+        <span className="w-10 h-10 flex items-center justify-center rounded-full bg-stuff-light text-stuff-white font-bold text-lg">
           {initials || <UserIcon size={22} />}
         </span>
         <span className="font-semibold text-stuff-light text-lg ml-2">
@@ -62,7 +63,7 @@ const UserDropdown = () => {
         <div className="absolute right-3 mt-2 min-w-[180px] bg-stuff-white rounded-b-xl border-x border-b border-stuff-light z-50 flex flex-col py-2 animate-fade-in shadow-[8px_8px_0_0_rgba(0,0,0,0.1)]">
           <button
             className="flex items-center gap-2 px-5 py-2 text-stuff-light hover:bg-stuff-light/10 transition-colors w-full text-left text-base cursor-pointer"
-            onClick={() => {router.push("/profile")}}
+            onClick={() => { setProfileOpen(true); setOpen(false); }}
           >
             <UserRound size={20} className="text-stuff-light" />
             perfil
@@ -75,6 +76,9 @@ const UserDropdown = () => {
             sair
           </button>
         </div>
+      )}
+      {profileOpen && (
+        <ProfileModal userId={user.id} open={profileOpen} onClose={() => setProfileOpen(false)} />
       )}
     </div>
   );

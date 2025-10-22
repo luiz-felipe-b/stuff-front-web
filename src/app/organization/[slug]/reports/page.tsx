@@ -6,9 +6,7 @@ import Header from "@/components/Header/Header";
 import { useSelectedOrganization } from "@/context/SelectedOrganizationContext";
 import { useRouter } from "next/navigation";
 import { organizationsApi } from "@/services/api";
-import Loader from "@/components/Loader/Loader";
 import { ClipboardList } from "lucide-react";
-import MemberList from "@/components/MemberList/MemberList";
 import ReportList from "@/components/ReportList/ReportList";
 
 const OrganizationMembersPage = () => {
@@ -18,12 +16,6 @@ const OrganizationMembersPage = () => {
     const [reports, setReports] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const [searchTerm, setSearchTerm] = useState("");
-
-    // Filtered members based on searchTerm
-    const filteredMembers = searchTerm
-        ? members.filter((m) => m.email.toLowerCase().includes(searchTerm.toLowerCase()))
-        : members;
 
     const fetchMembers = async (showLoader = true) => {
         if (showLoader) setLoading(true);
@@ -34,7 +26,6 @@ const OrganizationMembersPage = () => {
             setMembers(resp.data || []);
         } catch (err) {
             setError("Erro ao carregar membros.");
-            toast.error("Erro ao carregar membros.");
         } finally {
             if (showLoader) setLoading(false);
         }
@@ -46,7 +37,6 @@ const OrganizationMembersPage = () => {
             setReports(resp.data || []);
         } catch (err) {
             setError("erro ao carregar relatórios.");
-            toast.error("erro ao carregar relatórios.");
         }
     };
 
@@ -58,6 +48,12 @@ const OrganizationMembersPage = () => {
         fetchMembers();
         fetchReports();
     }, [organization, router]);
+
+    useEffect(() => {
+        if (error) {
+            toast.error(error);
+        }
+    }, [error]);
 
     if (!organization) {
         return null;
@@ -72,11 +68,9 @@ const OrganizationMembersPage = () => {
                     <h1 className="text-2xl font-extrabold">Relatórios</h1>
                 </div>
                 <div className="mb-4 text-stuff-gray-200">
-                    Relatórios da organização
+                    esses são os seus relatórios
                 </div>
                 <ReportList reports={reports} loading={loading} onReload={fetchReports} />
-                
-                {/* Erros agora são exibidos via toast */}
             </main>
         </div>
     );

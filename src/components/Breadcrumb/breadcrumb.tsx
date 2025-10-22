@@ -29,7 +29,7 @@ export default function Breadcrumb({
 
   return (
     <nav className={`w-full ${className}`} aria-label="Breadcrumb">
-      <ol className="flex flex-wrap items-center gap-2 text-sm text-stuff-mid">
+      <ol className="flex flex-wrap items-center gap-2 text-sm text-stuff-light">
         {breadcrumbItems.map((item, index) => {
           const isLast = index === breadcrumbItems.length - 1;
           return (
@@ -40,7 +40,7 @@ export default function Breadcrumb({
                   <span className="font-medium">{item.label}</span>
                 </Link>
               ) : (
-                <span className={`flex items-center gap-1 font-semibold text-stuff-dark ${isLast ? '' : ''}`}> 
+                <span className={`flex items-center gap-1 font-extrabold text-stuff-light ${isLast ? '' : ''}`}> 
                   {item.icon && <span className="text-stuff-primary">{item.icon}</span>}
                   <span>{item.label}</span>
                 </span>

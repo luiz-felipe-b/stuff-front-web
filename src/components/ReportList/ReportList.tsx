@@ -100,7 +100,7 @@ const ReportList: React.FC<ReportListProps> = ({ reports, loading = false, onRel
                     )}
                 </div>
             </div>
-            <div className="flex flex-col py-2 px-2 h-[48vh] gap-2 border-2 border-t-8 border-stuff-light rounded-2xl w-full bg-stuff-white">
+            <div className="flex flex-col py-2 px-2 h-[48vh] gap-2 border-2 border-t-8 border-stuff-light rounded-2xl w-full bg-stuff-white overflow-y-auto">
 
                 {loading || reloading ? (
                     <Loader size={24} />

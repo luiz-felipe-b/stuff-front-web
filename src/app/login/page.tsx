@@ -30,12 +30,15 @@ const LoginPage: React.FC = () => {
         return;
       }
 
-      await authApi.postAuthlogin({
+      const loginRes = await authApi.postAuthlogin({
         email: email.trim(),
         password: password.trim(),
-      });
+      }, {withCredentials: true});
 
-      const userResponse = await userApi.getUsersIdentifier({ params: { identifier: email.trim() } });
+      const accessToken = loginRes.accessToken;
+      localStorage.setItem("token", accessToken);
+
+      const userResponse = await userApi.getUsersme({headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : {} });
       const userData = userResponse.data;
       const userId = userData.id;
       const username = userData.userName;

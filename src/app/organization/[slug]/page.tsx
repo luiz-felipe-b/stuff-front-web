@@ -61,10 +61,10 @@ const SpecificOrganizationPage = () => {
 
     async function fetchOrganizationAssets(orgId: string) {
         setLoading(true);
-    // removed setErrorMsg and setSuccessMsg
+        // removed setErrorMsg and setSuccessMsg
         try {
             const token = localStorage.getItem("token");
-            const assetsResp = await organizationsApi.getOrganizationsIdassets({ params: {id: orgId}, headers: token ? { Authorization: `Bearer ${token}` } : {} });
+            const assetsResp = await organizationsApi.getOrganizationsIdassets({ params: { id: orgId }, headers: token ? { Authorization: `Bearer ${token}` } : {} });
             const assetList = assetsResp.data || [];
             // Fetch each asset's full details (with attributes)
             const assetsWithAttributes = await Promise.all(
@@ -99,21 +99,21 @@ const SpecificOrganizationPage = () => {
     return (
         <>
             <div className="h-full w-full flex items-center flex-col p-8">
-                <Header activeTab="home" />
-                        <section className="w-full bg-stuff-white rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.08)] flex flex-col items-center py-10 px-6 md:px-16">
-                            <h1 className="text-3xl font-bold text-stuff-mid mb-2 text-center">
-                            {organization.name}
-                            </h1>
-                            <p className="text-stuff-dark text-lg mb-8 text-center">
-                            acompanhe tudo de um lugar só
-                            </p>
-                
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full">
-                            <DashboardCard title="Ativos Cadastrados" value={152} bgClass="bg-stuff-high" />
-                            <DashboardCard title="Organizações" value={12} bgClass="bg-stuff-light" />
-                            <DashboardCard title="Últimos Acessos" value={"09/05/2025"} bgClass="bg-stuff-white" />
-                            </div>
-                        </section>       
+                <Header activeTab="home" organizationName={organization.name} />
+                <section className="w-full bg-stuff-white rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.08)] flex flex-col items-center py-10 px-6 md:px-16">
+                    <h1 className="text-3xl font-bold text-stuff-mid mb-2 text-center">
+                        {organization.name}
+                    </h1>
+                    <p className="text-stuff-dark text-lg mb-8 text-center">
+                        acompanhe tudo de um lugar só
+                    </p>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full">
+                        <DashboardCard title="Ativos Cadastrados" value={152} bgClass="bg-stuff-high" />
+                        <DashboardCard title="Organizações" value={12} bgClass="bg-stuff-light" />
+                        <DashboardCard title="Últimos Acessos" value={"09/05/2025"} bgClass="bg-stuff-white" />
+                    </div>
+                </section>
             </div>
         </>
     );

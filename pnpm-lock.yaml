@@ -44,6 +44,9 @@ importers:
       sass:
         specifier: ^1.89.2
         version: 1.92.1
+      stuff:
+        specifier: 'link:'
+        version: 'link:'
       zod:
         specifier: ^4.1.9
         version: 4.1.9

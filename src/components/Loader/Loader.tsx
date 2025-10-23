@@ -11,7 +11,7 @@ interface LoaderProps {
 const dotBase = "inline-block rounded-full mx-1";
 const bounce = "animate-bounce";
 
-const Loader: React.FC<LoaderProps> = ({ size = 32, color = "#FF7A00", className = "", label }) => (
+const Loader: React.FC<LoaderProps> = ({ size = 32, color = "#F4A64E", className = "", label }) => (
   <div className={`flex flex-col items-center justify-center ${className}`} style={{ minHeight: size * 1.5 }}>
     <div className="flex items-end justify-center" style={{ height: size, width: size * 2 }}>
       <span

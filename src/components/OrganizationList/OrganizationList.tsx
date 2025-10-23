@@ -80,13 +80,14 @@ const OrganizationList: React.FC<OrganizationListProps> = ({
       ) : filteredOrgs.length === 0 ? (
         <div className="text-center text-stuff-gray-100 py-8">Nenhuma organização encontrada.</div>
       ) : (
-        paginatedOrgs.map((org) => (
-          <div
-            key={org.id}
-            className="relative bg-white border-2 border-stuff-light rounded-xl shadow-[8px_8px_0_0_rgba(0,0,0,0.1)] p-5 cursor-pointer hover:bg-stuff-high/20 transition group flex"
-            onClick={() => onSelect(org)}
-          >
-            {/* <Button
+        <div className="overflow-y-auto">
+          {paginatedOrgs.map((org) => (
+            <div
+              key={org.id}
+              className="relative bg-stuff-white border-2 border-b-4 border-stuff-light rounded-xl shadow-[8px_8px_0_0_rgba(0,0,0,0.1)] p-5 cursor-pointer hover:bg-stuff-light/10 transition group flex"
+              onClick={() => onSelect(org)}
+            >
+              {/* <Button
               variant="primary"
               palette="danger"
               size="sm"
@@ -98,16 +99,17 @@ const OrganizationList: React.FC<OrganizationListProps> = ({
                 onDelete(org);
               }}
             /> */}
-            <Building
-              className="mr-4 text-stuff-light"
-            />
-            <div className="flex flex-col">
-              <span className="font-semibold text-xl text-stuff-black truncate mb-1">{org.name}</span>
-              <span className="text-stuff-dark text-base truncate mb-2">{org.description}</span>
-              <span className="text-xs text-stuff-mid">ID: {org.id}</span>
+              <Building
+                className="mr-4 text-stuff-light"
+              />
+              <div className="flex flex-col">
+                <span className="font-extrabold text-xl text-stuff-light truncate mb-1">{org.name}</span>
+                <span className="text-stuff-light text-base truncate mb-2">{org.description}</span>
+                <span className="text-xs text-stuff-light">ID: {org.id}</span>
+              </div>
             </div>
-          </div>
-        ))
+          ))}
+        </div>
       )}
 
       {/* Pagination Controls */}

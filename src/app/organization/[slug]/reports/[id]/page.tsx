@@ -7,7 +7,8 @@ import Loader from "@/components/Loader/Loader";
 import toast from "react-hot-toast";
 import { useSelectedOrganization } from "@/context/SelectedOrganizationContext";
 import Header from "@/components/Header/Header";
-import { ClipboardList } from "lucide-react";
+import { ClipboardList, Download } from "lucide-react";
+import Button from "@/components/Button/Button";
 import Breadcrumb from "@/components/Breadcrumb/breadcrumb";
 
 function parseCSV(csv: string) {
@@ -51,6 +52,7 @@ const ReportDetailPage = () => {
     const { id } = params as { id: string };
     const [loading, setLoading] = useState(true);
     const [csvData, setCsvData] = useState<{ headers: string[]; rows: string[][] }>({ headers: [], rows: [] });
+    const [csvRaw, setCsvRaw] = useState<string>("");
     const [error, setError] = useState<string | null>(null);
     const [report, setReport] = useState<any>(null);
     const { organization } = useSelectedOrganization();
@@ -85,6 +87,7 @@ const ReportDetailPage = () => {
                 const csvResp = await fetch(presignedUrl);
                 if (!csvResp.ok) throw new Error("Falha ao baixar CSV.");
                 const csvText = await csvResp.text();
+                setCsvRaw(csvText);
                 setCsvData(parseCSV(csvText));
             } catch (err: any) {
                 setError(err.message || "Erro ao carregar relatório.");
@@ -95,61 +98,96 @@ const ReportDetailPage = () => {
         if (organization.id && id) fetchReportAndCSV();
     }, [organization?.id, id]);
 
+    // Download CSV handler (top-level)
+    function handleDownloadCSV() {
+        if (!csvRaw) return;
+        const blob = new Blob([csvRaw], { type: "text/csv" });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = `relatorio-${id}.csv`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+    }
+
     return (
         <div className="h-full w-full flex items-center flex-col p-8">
             <Header activeTab="reports" organizationName={organization?.name} />
             <main className="w-full h-full bg-stuff-white rounded-2xl shadow-[8px_8px_0_0_rgba(0,0,0,0.1)] p-8 flex flex-col border-2 border-stuff-light">
                 <Breadcrumb
-                    items={[ 
+                    items={[
                         { label: "Relatórios", href: `/organization/${organization?.slug}/reports` },
                         { label: report?.createdAt ? `Detalhe do relatório (${formatDate(report.createdAt)})` : `Detalhe do relatório`, href: `/organization/${organization?.slug}/reports/${id}` },
                     ].filter(Boolean)}
                     className="mb-4"
                 />
-                <div className="flex items-center gap-2 mb-4 text-stuff-light">
-                    <ClipboardList />
-                    <h1 className="text-2xl font-extrabold">Dados do relatório</h1>
+                <div className="flex items-center justify-between gap-2 mb-2 text-stuff-light">
+                    <div className="flex items-center gap-2 mb-4 text-stuff-light">
+                        <ClipboardList />
+                        <h1 className="text-2xl font-extrabold">Dados do relatório</h1>
+                    </div>
+                    <div className="mb-4 flex justify-end">
+                        <Button
+                            palette="default"
+                            variant="primary"
+                            size="md"
+                            title="baixar csv"
+                            aria-label="Baixar relatório como CSV"
+                            onClick={handleDownloadCSV}
+                            disabled={loading || !csvRaw}
+                            className="py-3"
+                        >
+                            <Download size={24} />
+                        </Button>
+                    </div>
                 </div>
-
+                
 
                 {loading ? (
-                    <Loader />
-                ) : (
-                    <div className="overflow-auto border-2 border-t-4 border-stuff-light rounded-xl bg-stuff-white">
-                        <div
-                            className="grid text-sm"
-                            style={{ gridTemplateColumns: `repeat(${csvData.headers.length}, minmax(120px, 1fr))` }}
-                        >
-                            {/* Header row */}
-                            {csvData.headers.map((h, i) => (
-                                <div
-                                    key={i}
-                                    className="px-4 py-2 bg-stuff-light text-stuff-white font-bold border-b border-stuff-light"
-                                >
-                                    {columnTranslations[h.trim()] || h}
-                                </div>
-                            ))}
-                            {/* Data rows */}
-                            {csvData.rows.map((row, i) =>
-                                row.map((cell, j) => {
-                                    let displayValue = cell;
-                                    if (cell.trim() === "") displayValue = "?";
-                                    else if (cell.trim().toLowerCase() === "true") displayValue = "Sim";
-                                    else if (cell.trim().toLowerCase() === "false") displayValue = "Não";
-                                    else displayValue = formatDate(cell);
-                                    return (
-                                        <div
-                                            key={`${i}-${j}`}
-                                            className={`px-4 py-2 text-stuff-light border-b border-stuff-light ${i % 2 === 0 ? 'bg-stuff-white' : 'bg-stuff-light/10'}`}
-                                            style={{ borderRight: (j === csvData.headers.length - 1) ? 'none' : undefined }}
-                                        >
-                                            {displayValue}
-                                        </div>
-                                    );
-                                })
-                            )}
-                        </div>
+                    <div className="flex items-center justify-center h-[60vh] w-full">
+                        <Loader />
                     </div>
+                ) : (
+                    <>
+
+                        <div className="overflow-auto border-2 border-t-4 border-stuff-light rounded-xl bg-stuff-white">
+                            <div
+                                className="grid text-sm"
+                                style={{ gridTemplateColumns: `repeat(${csvData.headers.length}, minmax(120px, 1fr))` }}
+                            >
+                                {/* Header row */}
+                                {csvData.headers.map((h, i) => (
+                                    <div
+                                        key={i}
+                                        className="px-4 py-2 bg-stuff-light text-stuff-white font-bold border-b border-stuff-light"
+                                    >
+                                        {columnTranslations[h.trim()] || h}
+                                    </div>
+                                ))}
+                                {/* Data rows */}
+                                {csvData.rows.map((row, i) =>
+                                    row.map((cell, j) => {
+                                        let displayValue = cell;
+                                        if (cell.trim() === "") displayValue = "?";
+                                        else if (cell.trim().toLowerCase() === "true") displayValue = "Sim";
+                                        else if (cell.trim().toLowerCase() === "false") displayValue = "Não";
+                                        else displayValue = formatDate(cell);
+                                        return (
+                                            <div
+                                                key={`${i}-${j}`}
+                                                className={`px-4 py-2 text-stuff-light border-b border-stuff-light ${i % 2 === 0 ? 'bg-stuff-white' : 'bg-stuff-light/10'}`}
+                                                style={{ borderRight: (j === csvData.headers.length - 1) ? 'none' : undefined }}
+                                            >
+                                                {displayValue}
+                                            </div>
+                                        );
+                                    })
+                                )}
+                            </div>
+                        </div>
+                    </>
                 )}
 
             </main>

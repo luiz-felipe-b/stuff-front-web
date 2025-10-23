@@ -6,6 +6,7 @@ import { useUser } from "@/context/UserContext";
 import { useSelectedOrganization, Organization as OrgType } from "@/context/SelectedOrganizationContext";
 import OrganizationList from "@/components/OrganizationList/OrganizationList";
 import Header from "@/components/Header/Header";
+import { Building } from "lucide-react";
 
 const SelectOrganizationPage = () => {
     const { user } = useUser();
@@ -42,7 +43,10 @@ const SelectOrganizationPage = () => {
         <div className="h-full w-full flex items-center flex-col p-8">
             <Header activeTab="" showNav={false} />
             <div className="w-full h-full bg-stuff-white rounded-2xl shadow-[8px_8px_0_0_rgba(0,0,0,0.1)] p-8 flex flex-col border-2 border-stuff-light">
-                <h1 className="text-2xl font-bold mb-4 text-stuff-mid">Escolha uma organização</h1>
+                <div className="flex gap-2 items-center mb-4">
+                    <Building className="text-stuff-light mr-2 inline-block" />
+                    <h1 className="text-2xl font-bold text-stuff-light">Escolha uma organização</h1>
+                </div>
                 <OrganizationList
                     organizations={organizations}
                     loading={loading}

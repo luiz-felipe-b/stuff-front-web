@@ -7,6 +7,7 @@ import { Dog } from 'lucide-react';
 export default function Home() {
   // Instantly redirect to /login
   redirect('/login');
+  
 
   // Home page code is preserved for future use or conditional rendering
   return (

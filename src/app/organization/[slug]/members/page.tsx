@@ -110,7 +110,9 @@ const OrganizationMembersPage = () => {
 						esses são os membros da organização
 					</div>
 					{loading ? (
-						<Loader />
+						<div className="flex items-center justify-center h-[60vh] w-full">
+                            <Loader />
+                        </div>
 					) : error ? (
 						<div className="text-red-500">{error}</div>
 					) : (

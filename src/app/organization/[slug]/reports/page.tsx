@@ -8,6 +8,7 @@ import { useRouter } from "next/navigation";
 import { organizationsApi } from "@/services/api";
 import { ClipboardList } from "lucide-react";
 import ReportList from "@/components/ReportList/ReportList";
+import Loader from "@/components/Loader/Loader";
 
 const OrganizationMembersPage = () => {
     const router = useRouter();
@@ -70,7 +71,13 @@ const OrganizationMembersPage = () => {
                 <div className="mb-4 text-stuff-gray-200">
                     esses são os seus relatórios
                 </div>
-                <ReportList reports={reports} loading={loading} onReload={fetchReports} />
+                {loading ? (
+                    <div className="flex items-center justify-center h-[60vh] w-full">
+                        <Loader />
+                    </div>
+                ) : (
+                    <ReportList reports={reports} loading={loading} onReload={fetchReports} />
+                )}
             </main>
         </div>
     );

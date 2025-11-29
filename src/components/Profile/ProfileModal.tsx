@@ -45,7 +45,7 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ userId, open, onClose }) =>
     }, [userId, open]);
 
     useEffect(() => {
-        toast.error(error);
+        if (error) toast.error(error);
     }, [error]);
 
     function handleChange(e: React.ChangeEvent<HTMLInputElement>) {

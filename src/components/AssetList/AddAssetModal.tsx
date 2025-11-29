@@ -112,9 +112,7 @@ const AddAssetModal: React.FC<AddAssetModalProps> = ({
       if (newAsset.description) assetPayload.description = newAsset.description;
       // Always use organizationId from newAsset prop
       if (newAsset.organizationId) assetPayload.organizationId = newAsset.organizationId;
-      toast("Payload: " + JSON.stringify(assetPayload));
       // eslint-disable-next-line no-console
-      console.log("Creating asset with payload:", assetPayload);
       const assetRes = await assetsApi.postAssets(assetPayload);
       let assetId: string | null = null;
       if (Array.isArray(assetRes.data)) {

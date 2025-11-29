@@ -9,12 +9,14 @@ import ValueTokenSelector from "../ValueTokenSelector/ValueTokenSelector";
 import ToggleButton from "../Button/ToggleButton";
 
 export interface Attribute {
+  id: string;
   name: string;
   type: string;
   value: any;
   options?: string[];
   unit?: string;
   copied?: boolean;
+  timeUnit?: string;
   newOption?: string;
 }
 

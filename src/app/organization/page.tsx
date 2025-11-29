@@ -5,6 +5,8 @@ import { organizationsApi } from "@/services/api";
 import { useUser } from "@/context/UserContext";
 import { useSelectedOrganization, Organization as OrgType } from "@/context/SelectedOrganizationContext";
 import OrganizationList from "@/components/OrganizationList/OrganizationList";
+import Modal from "@/components/ConfirmModal/ConfirmModal";
+import Input from "@/components/Input/Input";
 import Header from "@/components/Header/Header";
 import { Building } from "lucide-react";
 
@@ -13,6 +15,11 @@ const SelectOrganizationPage = () => {
     const { setOrganization } = useSelectedOrganization();
     const [organizations, setOrganizations] = useState<OrgType[]>([]);
     const [loading, setLoading] = useState(false);
+    const [addModalOpen, setAddModalOpen] = useState(false);
+    const [addLoading, setAddLoading] = useState(false);
+    const [addError, setAddError] = useState<string | null>(null);
+    const [newOrgName, setNewOrgName] = useState("");
+    const [newOrgDesc, setNewOrgDesc] = useState("");
     const router = useRouter();
 
     useEffect(() => {
@@ -56,8 +63,72 @@ const SelectOrganizationPage = () => {
                     selectedOrg={null}
                     onCancelDelete={() => { }}
                     onConfirmDelete={async () => { }}
+                    onAddOrganization={() => setAddModalOpen(true)}
                 />
             </div>
+            {/* Add Organization Modal */}
+            <Modal
+                open={addModalOpen}
+                message="Preencha as informações para criar uma nova organização."
+                // loading prop removed; handle loading state in content or button if needed
+                onCancel={() => {
+                    setAddModalOpen(false);
+                    setAddError(null);
+                    setNewOrgName("");
+                    setNewOrgDesc("");
+                }}
+                onConfirm={async () => {
+                    setAddLoading(true);
+                    setAddError(null);
+                    try {
+                        const token = localStorage.getItem("token");
+                        await organizationsApi.postOrganizations(
+                            {
+                                name: newOrgName,
+                                slug: newOrgName
+                                    .normalize("NFD")
+                                    .replace(/\p{Diacritic}/gu, "")
+                                    .toLowerCase()
+                                    .replace(/\s+/g, "-"),
+                                description: newOrgDesc,
+                            }, {
+                                headers: token ? { Authorization: `Bearer ${token}` } : {},
+                            }
+                        );
+                        setAddModalOpen(false);
+                        setNewOrgName("");
+                        setNewOrgDesc("");
+                        await fetchUserOrganizations();
+                    } catch (err: any) {
+                        console.error(err)
+                        setAddError("Erro ao criar organização. Tente novamente.");
+                    }
+                    setAddLoading(false);
+                }}
+                confirmLabel="Criar"
+                cancelLabel="Cancelar"
+            >
+                <div className="flex flex-col gap-4 mt-2">
+                    <label className="text-sm font-medium text-stuff-light">Nome da organização
+                        <Input
+                            type="text"
+                            value={newOrgName}
+                            onChange={e => setNewOrgName(e.target.value)}
+                            required
+                            maxLength={60}
+                        />
+                    </label>
+                    <label className="text-sm font-medium text-stuff-light">Descrição
+                        <Input
+                            type="text"
+                            value={newOrgDesc}
+                            onChange={e => setNewOrgDesc(e.target.value)}
+                            maxLength={120}
+                        />
+                    </label>
+                    {addError && <div className="text-danger-base text-sm mt-2">{addError}</div>}
+                </div>
+            </Modal>
         </div>
     );
 };

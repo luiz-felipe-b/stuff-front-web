@@ -1,35 +1,65 @@
+
 # GitHub Copilot Instructions
 
-This document provides comprehensive guidance for AI coding agents working on the Estoque Inteligente frontend web application.
+This guide enables AI coding agents to be immediately productive in the Stuff frontend web project.
 
-## Project Overview
 
-This is a modern Next.js application for asset and inventory management, built with TypeScript, React, and SCSS. The application follows a service-oriented architecture with custom UI components and maintains strict separation of concerns.
+## Big Picture Architecture
+
+- **Framework**: Next.js (App Router, TypeScript strict mode)
+- **UI**: Custom React components in `src/components/`, styled with Tailwind CSS utility classes and CSS variables
+- **State**: Global via React Context (`UserContext`, `SelectedOrganizationContext`), local via hooks
+- **API**: All HTTP requests go through `src/services/api.ts` (Axios, JWT in localStorage)
+- **Pages**: Organized in `src/app/` using Next.js dynamic routing (`[slug]`, `[id]`)
+- **Data Flow**: Service layer abstracts API, components consume via hooks/effects, context provides user/org state
+
+## Tailwind CSS & Color Conventions
+
+- **Tailwind Usage**: All UI is styled using Tailwind CSS utility classes. Custom colors and design tokens are defined as CSS variables in `src/app/globals.css` and referenced in Tailwind via class names (e.g. `text-stuff-light`, `bg-stuff-white`, `border-success-light`).
+- **Custom Colors**: Brand, semantic, and state colors are defined as CSS variables:
+  - Brand: `--color-stuff-light`, `--color-stuff-mid`, `--color-stuff-dark`, etc.
+  - Semantic: `--color-success-light`, `--color-danger-base`, `--color-warning-dark`, etc.
+  - Grayscale: `--color-stuff-gray-100` to `--color-stuff-gray-500`
+- **Class Naming**: Tailwind classes like `text-stuff-light`, `bg-stuff-white`, `border-danger-light` are mapped to these variables via global CSS. This enables semantic, readable styling in JSX.
+- **Component Patterns**: Components use these classes for consistent color usage. Example:
+  ```tsx
+  <div className="bg-stuff-white border-2 border-stuff-light text-stuff-light">
+    <h3 className="text-danger-light">Ativos na lixeira</h3>
+    <span className="text-success-base">Em uso</span>
+  </div>
+  ```
+- **Variants**: Success, danger, warning, and new feature colors are used for status indicators, buttons, and alerts. See `Button`, `Alert`, and card components for usage.
+- **Responsive & Utility**: Tailwind’s responsive and utility classes are combined with these color classes for layout, spacing, and state (e.g. `hover:bg-stuff-mid/20`, `rounded-2xl`, `shadow`).
+
+**Reference files:**
+- `src/app/globals.css` — CSS variable definitions
+- `tailwind.config.js` — Tailwind setup (uses global CSS for custom colors)
+- Component examples: `Button`, `AssetList`, `ReportList`, and all pages in `src/app/organization/[slug]/`
 
 ## Architecture & Patterns
 
 ### Tech Stack
 - **Framework**: Next.js 15+ with App Router
 - **Language**: TypeScript (strict mode)
-- **Styling**: SCSS modules with CSS variables
+- **Styling**: Tailwind CSS utility classes and CSS variables
 - **HTTP Client**: Axios with custom API instance
 - **State Management**: React Context (UserContext) + local component state
 - **Fonts**: Onest (Google Fonts)
 
+src/
 ### Directory Structure
 ```
 src/
 ├── app/                    # Next.js App Router pages
 ├── components/             # Reusable UI components
-├── context/               # React Context providers
-├── services/              # API abstraction layer
-└── styles/               # Global and page-specific styles
+├── context/                # React Context providers
+├── services/               # API abstraction layer
 ```
 
 ### Key Architectural Decisions
 - **Service Layer**: All API calls go through `src/services/` for abstraction
 - **Component Composition**: Components support composition patterns (e.g., ButtonGroup)
-- **SCSS Variables**: Use CSS custom properties for themeable design tokens
+- **CSS Variables**: Use CSS custom properties for themeable design tokens
 - **Token Management**: JWT tokens handled in service layer with localStorage
 
 ## Code Conventions
@@ -37,7 +67,7 @@ src/
 ### File Naming
 - Components: PascalCase directory with PascalCase files (`Button/Button.tsx`)
 - Services: snake_case with `_service.ts` suffix
-- Styles: kebab-case for CSS classes, match component names for SCSS files
+- Styles: kebab-case for CSS classes, match component names for CSS files
 - Types: Co-located with components or in dedicated `types/` subdirectories
 
 ### TypeScript Guidelines
@@ -73,32 +103,10 @@ Component.displayName = 'Component';
 export default Component;
 ```
 
-### SCSS Conventions
-- Use BEM-like naming: `.component`, `.component__element`, `.component--modifier`
-- Define CSS variables in separate `*-variables.scss` files
-- Use SCSS maps for variants (palettes, sizes, etc.)
+### CSS Conventions
+- Use BEM-like naming: `.component`, `.component__element`, `.component--modifier` (for custom CSS modules)
+- Define CSS variables in `globals.css` for color tokens
 - Always scope styles to component classes
-
-```scss
-// Component variables
-:root {
-  --component-primary: #value;
-  --component-size-sm: 12px;
-}
-
-// Component styles
-.component {
-  // Base styles
-  
-  &__element {
-    // Element styles
-  }
-  
-  &--modifier {
-    // Modifier styles
-  }
-}
-```
 
 ## Service Layer Guidelines
 

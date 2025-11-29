@@ -24,6 +24,8 @@ export interface AddSingleAttributeStepProps {
   onSave: () => void;
   onCancel: () => void;
   loading?: boolean;
+  orgAttributes?: Attribute[];
+  orgAttributesLoading?: boolean;
 }
 
 const typeOptions = [
@@ -45,14 +47,51 @@ const AddSingleAttributeStep: React.FC<AddSingleAttributeStepProps> = ({
   onSave,
   onCancel,
   loading,
+  orgAttributes = [],
+  orgAttributesLoading = false,
 }) => {
+  const [selectedAttrId, setSelectedAttrId] = React.useState<string>("__new__");
+
+  React.useEffect(() => {
+    if (selectedAttrId && selectedAttrId !== "__new__") {
+      const found = orgAttributes.find(a => a.id === selectedAttrId);
+      if (found) {
+        // Copy all fields except value
+        onChange("name", found.name);
+        onChange("type", found.type);
+        if (found.options) onChange("options", found.options);
+        if (found.unit) onChange("unit", found.unit);
+        if (found.timeUnit) onChange("timeUnit", found.timeUnit);
+        // Optionally lock name/type fields
+      }
+    }
+    if (selectedAttrId === "__new__") {
+      onChange("name", "");
+      onChange("type", "text");
+      onChange("options", []);
+      onChange("unit", undefined);
+      onChange("timeUnit", undefined);
+    }
+    // eslint-disable-next-line
+  }, [selectedAttrId]);
+
   return (
     <form className="flex flex-col gap-4" onSubmit={e => { e.preventDefault(); onSave(); }}>
-      <h3 className="text-lg font-bold text-stuff-light mb-2">Novo atributo</h3>
+      <h3 className="text-lg font-bold text-stuff-light mb-2">Adicionar atributo</h3>
       <div>
-        <label className="text-stuff-light">
-          nome do atributo
-        </label>
+        <label className="text-stuff-light mb-1 block">Usar atributo existente</label>
+        <Select
+          options={[
+            { value: "__new__", label: "Novo atributo" },
+            ...orgAttributes.map(a => ({ value: a.id, label: `${a.name} (${a.type})` })),
+          ]}
+          value={selectedAttrId}
+          onChange={e => setSelectedAttrId(e.target.value)}
+          disabled={orgAttributesLoading}
+        />
+      </div>
+      <div>
+        <label className="text-stuff-light">nome do atributo</label>
         <Input
           type="text"
           value={attribute.name}
@@ -60,12 +99,11 @@ const AddSingleAttributeStep: React.FC<AddSingleAttributeStepProps> = ({
           placeholder="nome do atributo"
           className="w-full"
           required
+          disabled={selectedAttrId !== "__new__"}
         />
       </div>
       <div>
-        <label className="text-stuff-light mb-1 block">
-          tipo do atributo
-        </label>
+        <label className="text-stuff-light mb-1 block">tipo do atributo</label>
         <div className="flex flex-wrap gap-2">
           {typeOptions.map(opt => (
             <button
@@ -73,6 +111,7 @@ const AddSingleAttributeStep: React.FC<AddSingleAttributeStepProps> = ({
               type="button"
               className={`px-3 py-1 rounded-lg border-2 border-b-4 transition-colors font-medium text-sm focus:outline-none cursor-pointer ${attribute.type === opt.value ? 'bg-stuff-light border-stuff-mid text-stuff-white' : 'bg-stuff-white border-stuff-light text-stuff-light hover:bg-stuff-light/10'}`}
               onClick={() => onChange("type", opt.value)}
+              disabled={selectedAttrId !== "__new__"}
             >
               {opt.label}
             </button>

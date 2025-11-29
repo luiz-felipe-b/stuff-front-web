@@ -7,6 +7,7 @@ import AddSingleAttributeStep from "./AddSingleAttributeStep";
 import AddAssetConfirmationStep from "./AddAssetConfirmationStep";
 import { useUser } from "@/context/UserContext";
 import { toast } from "react-hot-toast";
+import EditAttributeValueStep from "./EditAttributeValueStep";
 
 export interface AddAssetModalProps {
   open: boolean;
@@ -19,6 +20,10 @@ export interface AddAssetModalProps {
   onCopyFromAsset?: (assetId: string) => void;
   organizationId?: string | null;
 }
+
+
+const ADD_ATTRIBUTE_STEP = 22;
+const EDIT_ATTRIBUTE_STEP = 23;
 
 const AddAssetModal: React.FC<AddAssetModalProps> = ({
   open,
@@ -36,6 +41,9 @@ const AddAssetModal: React.FC<AddAssetModalProps> = ({
   const [attributes, setAttributes] = React.useState<any[]>([]);
   const [attributeDraft, setAttributeDraft] = React.useState<any | null>(null);
   const [editingAttributeIdx, setEditingAttributeIdx] = React.useState<number | null>(null);
+  // New state for editing attribute modal
+  const [editAttributeDraft, setEditAttributeDraft] = React.useState<any | null>(null);
+  const [editAttributeIdx, setEditAttributeIdx] = React.useState<number | null>(null);
   const {user} = useUser();
 
 
@@ -116,13 +124,18 @@ const AddAssetModal: React.FC<AddAssetModalProps> = ({
       }
       console.log(assetRes)
       if (!assetId) throw new Error("Falha ao criar ativo");
-      // 2. Create attributes if new, collect attribute IDs
+      // 2. Create attributes only if they do not have a valid backend id (UUID)
       const attributeIds: string[] = [];
+      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
       for (const attr of attributes) {
         let attrId = attr.id;
         if (!user) throw new Error("Usuário não autenticado");
         if (!user.id) throw new Error("Usuário inválido");
-        if (!attr.copied) {
+        // Only create attribute if it does not have a valid backend id (UUID)
+        if (!attrId || typeof attrId !== 'string' || !uuidRegex.test(attrId)) {
+          // Debug: log attribute being created
+          // eslint-disable-next-line no-console
+          console.log('[AddAssetModal] Creating new attribute:', attr.name, attr);
           const attrRes = await attributesApi.postAttributes({
             name: attr.name,
             type: attr.type,
@@ -134,6 +147,10 @@ const AddAssetModal: React.FC<AddAssetModalProps> = ({
           });
           attrId = attrRes.data?.id;
           if (!attrId) throw new Error("Falha ao criar atributo");
+        } else {
+          // Debug: log attribute being reused
+          // eslint-disable-next-line no-console
+          console.log('[AddAssetModal] Reusing existing attribute:', attr.name, attrId);
         }
         attributeIds.push(attrId);
       }
@@ -166,46 +183,62 @@ const AddAssetModal: React.FC<AddAssetModalProps> = ({
     }
   };
 
+
   const handleAddAttribute = () => {
     setAttributeDraft({ name: "", type: "text", value: "" });
     setEditingAttributeIdx(null);
-    setStep(22); // 22 = attribute creation step
+    setStep(ADD_ATTRIBUTE_STEP);
   };
-  React.useEffect(() => {
-    const handler = (e: any) => {
-      if (e.detail && typeof e.detail.idx === 'number') {
-        const attr = attributes[e.detail.idx];
-        if (!attr) return;
-        let draft = { ...attr };
-        // Transform value for editing
-        if (attr.type === "timemetric") {
-          // Always use { scale, unit }
-          let scale = "";
-          let unit = attr.unit || attr.timeUnit || "";
-          if (typeof attr.value === "string" || typeof attr.value === "number") {
-            scale = attr.value;
-          } else if (attr.value && typeof attr.value === "object") {
-            scale = attr.value.scale ?? attr.value.value ?? "";
-            unit = attr.value.unit || unit;
-          }
-          draft.value = { scale, unit };
-        } else if (attr.type === "date") {
-          // Ensure value is a valid date string
-          if (typeof attr.value === "string") {
-            const d = new Date(attr.value);
-            draft.value = !isNaN(d.getTime()) ? d.toISOString().slice(0, 10) : attr.value;
-          } else {
-            draft.value = attr.value ? String(attr.value) : "";
-          }
-        }
-        setAttributeDraft(draft);
-        setEditingAttributeIdx(e.detail.idx);
-        setStep(22);
+
+  // Handler to open the edit attribute modal (step 23)
+  const handleEditAttributeModal = (idx: number) => {
+    const attr = attributes[idx];
+    if (!attr) return;
+    let draft = { ...attr };
+    // Transform value for editing (reuse logic from handleEditAttribute)
+    if (attr.type === "timemetric") {
+      let scale = "";
+      let unit = attr.unit || attr.timeUnit || "";
+      if (typeof attr.value === "string" || typeof attr.value === "number") {
+        scale = attr.value;
+      } else if (attr.value && typeof attr.value === "object") {
+        scale = attr.value.scale ?? attr.value.value ?? "";
+        unit = attr.value.unit || unit;
       }
+      draft.value = { scale, unit };
+    } else if (attr.type === "date") {
+      if (typeof attr.value === "string") {
+        const d = new Date(attr.value);
+        draft.value = !isNaN(d.getTime()) ? d.toISOString().slice(0, 10) : attr.value;
+      } else {
+        draft.value = attr.value ? String(attr.value) : "";
+      }
+    }
+    setEditAttributeDraft(draft);
+    setEditAttributeIdx(idx);
+    setStep(EDIT_ATTRIBUTE_STEP);
+  };
+
+  // Keep the old handleEditAttribute for now (could be refactored to use the new modal)
+    // Handlers for editing attribute modal
+    const handleEditAttributeDraftChange = (field: string, value: any) => {
+      setEditAttributeDraft((prev: any) => ({ ...prev, [field]: value }));
     };
-    window.addEventListener('editCopiedAttribute', handler);
-    return () => window.removeEventListener('editCopiedAttribute', handler);
-  }, [attributes]);
+
+    const handleEditAttributeDraftSave = () => {
+      if (editAttributeIdx !== null && editAttributeDraft) {
+        setAttributes(prev => prev.map((attr, i) => i === editAttributeIdx ? editAttributeDraft : attr));
+      }
+      setEditAttributeDraft(null);
+      setEditAttributeIdx(null);
+      setStep(2);
+    };
+
+    const handleEditAttributeDraftCancel = () => {
+      setEditAttributeDraft(null);
+      setEditAttributeIdx(null);
+      setStep(2);
+    };
   const handleAttributeChange = (idx: number, field: string, value: any) => {
     setAttributes(prev => prev.map((attr, i) => i === idx ? { ...attr, [field]: value } : attr));
   };
@@ -264,17 +297,28 @@ const AddAssetModal: React.FC<AddAssetModalProps> = ({
             attributes={attributes}
             onAddAttribute={handleAddAttribute}
             onRemoveAttribute={handleRemoveAttribute}
+            // Use the new edit modal handler
+            onEditAttribute={handleEditAttributeModal}
             onCancel={onCancel}
             onBack={() => setStep(1)}
             onNext={() => setStep(3)}
           />
         )}
-        {step === 22 && attributeDraft && (
+        {step === ADD_ATTRIBUTE_STEP && attributeDraft && (
           <AddSingleAttributeStep
             attribute={attributeDraft}
             onChange={handleAttributeDraftChange}
             onSave={handleAttributeDraftSave}
             onCancel={handleAttributeDraftCancel}
+            loading={loading}
+          />
+        )}
+        {step === EDIT_ATTRIBUTE_STEP && editAttributeDraft && (
+          <EditAttributeValueStep
+            attribute={editAttributeDraft}
+            onChange={handleEditAttributeDraftChange}
+            onSave={handleEditAttributeDraftSave}
+            onCancel={handleEditAttributeDraftCancel}
             loading={loading}
           />
         )}

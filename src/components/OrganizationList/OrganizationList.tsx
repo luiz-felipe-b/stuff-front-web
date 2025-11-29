@@ -4,7 +4,7 @@ import Button from "@/components/Button/Button";
 import Loader from "@/components/Loader/Loader";
 import { ListItem } from "@/components/List";
 import DeleteOrganizationModal from "@/components/OrganizationList/DeleteOrganizationModal";
-import { Building, Search, Trash } from "lucide-react";
+import { Building, Search, Trash, Plus } from "lucide-react";
 import Input from "@/components/Input/Input";
 
 interface Organization {
@@ -23,6 +23,7 @@ interface OrganizationListProps {
   selectedOrg: Organization | null;
   onCancelDelete: () => void;
   onConfirmDelete: () => Promise<void>;
+  onAddOrganization?: () => void;
 }
 
 
@@ -37,12 +38,13 @@ const OrganizationList: React.FC<OrganizationListProps> = ({
   selectedOrg,
   onCancelDelete,
   onConfirmDelete,
+  onAddOrganization,
 }) => {
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
 
   // Filter organizations by search
-  const filteredOrgs = organizations.filter(org =>
+  const filteredOrgs = organizations.filter((org: Organization) =>
     org.name.toLowerCase().includes(search.toLowerCase()) ||
     (org.description?.toLowerCase().includes(search.toLowerCase()) ?? false)
   );
@@ -74,14 +76,22 @@ const OrganizationList: React.FC<OrganizationListProps> = ({
             setPage(1);
           }}
         />
+        <Button
+          variant="primary"
+          palette="success"
+          size="md"
+          iconBefore={<Plus />}
+          aria-label="Adicionar organização"
+          onClick={onAddOrganization}
+        />
       </div>
       {loading ? (
         <Loader label="Carregando organizações..." />
       ) : filteredOrgs.length === 0 ? (
         <div className="text-center text-stuff-gray-100 py-8">Nenhuma organização encontrada.</div>
       ) : (
-        <div className="overflow-y-auto">
-          {paginatedOrgs.map((org) => (
+        <div className="flex flex-col overflow-y-auto gap-2 h-[56vh]">
+          {paginatedOrgs.map((org: Organization) => (
             <div
               key={org.id}
               className="relative bg-stuff-white border-2 border-b-4 border-stuff-light rounded-xl shadow-[8px_8px_0_0_rgba(0,0,0,0.1)] p-5 cursor-pointer hover:bg-stuff-light/10 transition group flex"

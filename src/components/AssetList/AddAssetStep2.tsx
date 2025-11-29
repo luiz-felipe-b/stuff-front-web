@@ -18,6 +18,7 @@ export interface AddAssetStep2Props {
   attributes: Attribute[];
   onAddAttribute: () => void;
   onRemoveAttribute: (idx: number) => void;
+  onEditAttribute: (idx: number) => void;
   onCancel: () => void;
   onBack: () => void;
   onNext: () => void;
@@ -28,6 +29,7 @@ const AddAssetStep2: React.FC<AddAssetStep2Props> = ({
   attributes,
   onAddAttribute,
   onRemoveAttribute,
+  onEditAttribute,
   onCancel,
   onBack,
   onNext,
@@ -252,11 +254,7 @@ const AddAssetStep2: React.FC<AddAssetStep2Props> = ({
                     palette="default"
                     size="sm"
                     className="py-2"
-                    onClick={() => {
-                      if (window && window.dispatchEvent) {
-                        window.dispatchEvent(new CustomEvent('editCopiedAttribute', { detail: { idx } }));
-                      }
-                    }}
+                    onClick={() => onEditAttribute(idx)}
                   >
                     <Pencil />
                   </Button>
